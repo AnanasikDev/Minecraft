@@ -16,7 +16,7 @@ struct Shader
 
 	enum class Type
 	{
-		FVertex,
+		Vertex,
 		Fragment
 	} m_type;
 

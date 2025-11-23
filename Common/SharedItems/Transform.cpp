@@ -3,25 +3,23 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/common.hpp"
 #include <algorithm>
+#include "Chunk.h"
 
 Transform::~Transform()
 {
 	AttachTo(nullptr);
-	// TODO: move desruction to Gameobject - Transform is not responsible for deleting objects
-	std::vector<Transform*>::iterator it;
-	for (it = m_children.begin(); it != m_children.end(); ++it)
-	{
-		(*it)->AttachTo(nullptr);
-	}
 }
 
 void Transform::Translate(glm::vec3 delta)
 {
 	m_position += delta;
-	std::vector<Transform*>::iterator it;
-	for (it = m_children.begin(); it != m_children.end(); ++it)
+	if (m_children.size() > 0)
 	{
-		(*it)->Translate(delta);
+		std::vector<Transform*>::iterator it;
+		for (it = m_children.begin(); it != m_children.end(); ++it)
+		{
+			(*it)->Translate(delta);
+		}
 	}
 }
 
@@ -41,10 +39,13 @@ void Transform::Rotate(float degrees, glm::vec3 axis)
 	glm::quat delta = glm::angleAxis(radians, axis);
 	m_quat = delta * m_quat;
 
-	std::vector<Transform*>::iterator it;
-	for (it = m_children.begin(); it != m_children.end(); ++it)
+	if (m_children.size() > 0)
 	{
-		(*it)->Rotate(degrees, axis);
+		std::vector<Transform*>::iterator it;
+		for (it = m_children.begin(); it != m_children.end(); ++it)
+		{
+			(*it)->Rotate(degrees, axis);
+		}
 	}
 
 	// TODO: relative rotations for children
@@ -81,4 +82,12 @@ glm::mat4 Transform::GetModelMatrix() const
 	mat = rot * mat;
 	mat = glm::translate(mat, m_position);
 	return mat;
+}
+
+glm::ivec2 Transform::GetChunkPosition() const
+{
+	return glm::ivec2(
+		static_cast<int>(roundf(m_position.x / Chunk::XWIDTH * 2)), 
+		static_cast<int>(roundf(m_position.z / Chunk::ZDEPTH * 2))
+	);
 }

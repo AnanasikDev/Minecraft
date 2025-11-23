@@ -1,32 +1,40 @@
 #pragma once
 
 #include <glh.h>
+#include <vector>
 
 class ElementBuffer
 {
 private:
-	GLuint m_id;
-	GLuint* m_buffer = nullptr;
+	unsigned int m_id{ 0 };
+	std::vector<unsigned int>* m_bufferPtr{ nullptr };
 
 public:
 	ElementBuffer();
+	~ElementBuffer()
+	{
+		//glDeleteBuffers(1, &m_id);
+	}
 
-	void LinkExternalElementBuffer(void* buffer, unsigned int size, GLenum mode);
-	void CreateElementBuffer(unsigned int initSize, GLenum mode);
-
+	void LinkExternal(std::vector<unsigned int>* buffer, unsigned int size);
 	void Bind();
 	void Unbind();
 
-	inline GLuint* GetRawData()
+	inline int GetLength() const
 	{
-		return m_buffer;
+		return static_cast<int>(m_bufferPtr->size());
 	}
 
-	inline GLuint* GetEBOIDp()
+	inline unsigned int* GetRawData()
+	{
+		return m_bufferPtr->data();
+	}
+
+	inline unsigned int* GetEBOIDp()
 	{
 		return &m_id;
 	}
-	inline GLuint GetEBOID() const
+	inline unsigned int GetEBOID() const
 	{
 		return m_id;
 	}

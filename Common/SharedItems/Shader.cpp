@@ -5,7 +5,7 @@ std::string Shader::GetName() const
 {
 	switch (m_type)
 	{
-	case Type::FVertex:
+	case Type::Vertex:
 		return "Vertex";
 	case Type::Fragment:
 		return "Fragment";
@@ -19,7 +19,7 @@ int Shader::TypeToGLType(Type type)
 {
 	switch (type)
 	{
-	case Type::FVertex:
+	case Type::Vertex:
 		return GL_VERTEX_SHADER;
 	case Type::Fragment:
 		return GL_FRAGMENT_SHADER;

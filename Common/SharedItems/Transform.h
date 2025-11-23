@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
 
@@ -14,15 +15,15 @@ class Transform
 {
 private:
 	glm::vec3 m_position{ 0,0,0 };
-	glm::quat m_quat{};
-	glm::vec3 m_scale{ 0,0,0 };
+	glm::quat m_quat{ 1,0,0,0 };
+	glm::vec3 m_scale{ 1,1,1 };
 	glm::vec3 m_forward{ 0,0,1 };
 	glm::vec3 m_up{ 0,1,0 };
 	glm::vec3 m_right{ 1,0,0 };
 
 public:
 
-	Transform* m_parent;
+	Transform* m_parent{ nullptr };
 	std::vector<Transform*> m_children;
 
 	Transform() = default;
@@ -42,7 +43,8 @@ public:
 
 	glm::mat4 GetModelMatrix() const;
 
-public:
+	glm::ivec2 GetChunkPosition() const;
+
 	inline glm::vec3 GetPosition() const { return m_position; }
 	inline glm::vec3 GetScale() const { return m_scale; }
 	inline glm::quat GetRotation() const { return m_quat; }

@@ -12,17 +12,14 @@
 #include "Block.h"
 #include "World.h"
 
-int Chunk::SUID = 0;
+int Chunk::SGUID = 0;
 
-//Chunk::Chunk()
-//{
-//	id = SUID++;
-//}
-
-Chunk::Chunk(glm::ivec2 pos, Game* game) : m_position(pos), m_game(game)
+Chunk::Chunk(glm::ivec2 pos, Game* game) : m_position(pos), m_game(game), m_isDirty(true), m_isGPUDirty(true)
 {
-	id = SUID++;
+	m_id = SGUID++;
 	m_blocks = std::make_unique<std::array<Block, XWIDTH * YHEIGHT * ZDEPTH>>();
+	m_meshRenderer.UseMesh(&m_mesh);
+	m_meshRenderer.UseRendererSystem(m_game->m_renderer.get());
 	Generate();
 }
 
@@ -36,11 +33,13 @@ void Chunk::GenerateGrid()
 	{
 		for (Coord z = 0; z < ZDEPTH; z++)
 		{
+			glm::ivec3 worldPos = LocalToWorld(x, 0, z);
+			const float height = static_cast<int>(m_game->m_world->GetHeightAt(worldPos.x, worldPos.z) * YHEIGHT);
+
 			for (Coord y = 0; y < YHEIGHT; y++)
 			{
-				glm::ivec3 worldPos = LocalToWorld(x, y, z);
-				//if (y > static_cast<int>(m_game->world->GetHeightAt(x, y, z) * YHEIGHT)) continue;
-				if (y < static_cast<int>(m_game->m_world->GetHeightAt(worldPos.x, worldPos.y, worldPos.z) * YHEIGHT) && m_game->m_world->GetDensityAt(worldPos.x, worldPos.y, worldPos.z) < 0.4f)
+				worldPos = LocalToWorld(x, y, z);
+				if (y < height && m_game->m_world->GetDensityAt(worldPos.x, worldPos.y, worldPos.z) < 0.4f)
 				{
 					if (Random::GetFloat(0.0f, std::fminf(static_cast<float>(y) / MAX_STONE_HEIGHT, MAX_STONE_HEIGHT) < 0.5f))
 					{
@@ -61,19 +60,6 @@ void Chunk::GenerateGrid()
 
 void Chunk::GenerateGeometry()
 {
-	for (Coord x = 0; x < XWIDTH; x++)
-	{
-		for (Coord z = 0; z < ZDEPTH; z++)
-		{
-			for (Coord y = 0; y < YHEIGHT; y++)
-			{
-				Block* block = At(x, y, z);
-				if (!block || block->IsAir()) continue;
-
-				GenerateBlock(x, y, z, *block);
-			}
-		}
-	}
 }
 
 glm::ivec3 Chunk::LocalToWorld(Coord x, Coord y, Coord z) const
@@ -116,41 +102,82 @@ const Block* Chunk::At(Coord x, Coord y, Coord z) const
 void Chunk::NewBlock(Coord x, Coord y, Coord z, BlockData* blockdata)
 {
 	Block* block = At(x, y, z);
-	if (block)
-	{
-		block->Set(blockdata);
-	}
+	if (!block || block->m_data == blockdata) return;
+	
+	block->Set(blockdata);
+	m_isDirty = true;
+	m_isGPUDirty = true;
+	m_isReadyForRender = false;
 }
 
 void Chunk::Generate()
 {
 	GenerateGrid();
-	GenerateGeometry();
+	m_meshRenderer.m_transform.Translate(LocalToWorld(0, 0, 0));
+}
 
-	glGenVertexArrays(1, &m_vaoid);
-	glBindVertexArray(m_vaoid);
+void Chunk::Remesh()
+{
+}
 
-	m_vbo.Bind();
-	m_vbo.LinkExternalVertexBuffer(m_vertices.data(), m_vertices.size() * sizeof(FVertex), GL_STATIC_DRAW);
-	m_vbo.ReadAtlas(m_game->atlas.m_id);
-
-	m_ebo.Bind();
-	m_ebo.LinkExternalElementBuffer(reinterpret_cast<unsigned int*>(m_indecies.data()), m_indecies.size() * sizeof(unsigned int), GL_STATIC_DRAW);
-
-	m_vbo.Layout().PushAttribute<float>(3, FVertex::stride);			// position
-	m_vbo.Layout().PushAttribute<float>(2, FVertex::stride);			// uv
-	m_vbo.Layout().PushAttribute<int>(1, FVertex::stride);				// texture id
+void Chunk::UpdateGPUBuffers()
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+	m_meshRenderer.UpdateBuffers();
+	m_isGPUDirty = false;
+	m_isReadyForRender = true;
 }
 
 void Chunk::Render(Camera* camera)
 {
-	if (id == 0) return;
+	if (m_isDirty || m_isGPUDirty || !m_isReadyForRender) return;
 
-	glBindVertexArray(m_vaoid);
+	std::lock_guard<std::mutex> lock(m_mtx);
+	
+	if (m_isDirty || m_isGPUDirty || !m_isReadyForRender) return;
+
+	m_meshRenderer.Render(camera);
+}
+
+void Chunk::RenderDebug(Camera* camera)
+{
+	/*return;
+	static float vertices[8 * 3] = {
+		0, 0, 0,
+		0, 1, 0,
+		1, 1, 0,
+		1, 0, 0,
+		0, 0, 1,
+		0, 1, 1,
+		1, 1, 1,
+		1, 0, 1,
+	};
+
+	static unsigned int indices[12 * 2] = {
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0,
+		4, 5,
+		5, 6,
+		6, 7,
+		7, 4,
+		0, 4,
+		1, 5,
+		2, 6,
+		3, 7
+	};
+
+	glBindVertexArray(m_debugvaoid);
+	m_debugvbo.Bind();
+	m_debugvbo.LinkExternalVertexBuffer(vertices, 8 * 3 * sizeof(float), GL_STATIC_DRAW);
+	m_debugebo.Bind();
+	m_debugebo.LinkExternalElementBuffer(indices, 12 * 2 * sizeof(unsigned int), GL_STATIC_DRAW);
+	m_debugvbo.Layout().PushAttribute<float>(3, 3 * sizeof(float));
 
 	glm::mat4 matModel(1.0f);
-	/*matModel = glm::translate(matModel, glm::vec3(0.5f, 0.0f, 5.0f));
-	matModel = glm::rotate(matModel, glm::radians(30.0f), glm::vec3(0.0f, 0.0f, 1.0f));*/
+	matModel = glm::scale(matModel, glm::vec3(XWIDTH, YHEIGHT, ZDEPTH));
+	matModel = glm::translate(matModel, glm::vec3(m_position.x * XWIDTH, 0, m_position.y * ZDEPTH));
 	glm::mat4 matProjection = camera->GetProjection();
 	glm::mat4 matView = camera->GetView();
 
@@ -161,28 +188,16 @@ void Chunk::Render(Camera* camera)
 	unsigned int uproj = glGetUniformLocation(m_game->program->shaderProgram, "u_ProjMat");
 	glUniformMatrix4fv(uproj, 1, GL_FALSE, glm::value_ptr(matProjection));
 
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
-	glDrawElements(GL_TRIANGLES, m_indecies.size(), GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_LINES, 12 * 2, GL_UNSIGNED_INT, nullptr);*/
 }
 
 void Chunk::AddFace(FVertex v00, FVertex v10, FVertex v11, FVertex v01)
 {
-	int index = m_vertices.size();
-	v00.Add(m_position.x * XWIDTH, 0, m_position.y * ZDEPTH);
-	v10.Add(m_position.x * XWIDTH, 0, m_position.y * ZDEPTH);
-	v11.Add(m_position.x * XWIDTH, 0, m_position.y * ZDEPTH);
-	v01.Add(m_position.x * XWIDTH, 0, m_position.y * ZDEPTH);
-	m_vertices.push_back(v00);
-	m_vertices.push_back(v10);
-	m_vertices.push_back(v11);
-	m_vertices.push_back(v01);
-
-	m_indecies.push_back(index + 3);
-	m_indecies.push_back(index + 2);
-	m_indecies.push_back(index);
-	m_indecies.push_back(index + 2);
-	m_indecies.push_back(index + 1);
-	m_indecies.push_back(index);
+	const int index{ m_mesh.GetVerticesCount() };
+	FVertex v[4]{ v00, v10, v11, v01 };
+	m_mesh.AddVertices(v, 4);
+	unsigned int e[6]{ index + 3, index + 2, index, index + 2, index + 1, index };
+	m_mesh.AddIndices(e, 6);
 }
 
 void Chunk::AddTop(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid)

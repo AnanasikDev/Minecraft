@@ -9,10 +9,11 @@
 class IGraphics;
 class Input;
 class Player;
-class Program;
-class Shader;
+struct Program;
+struct Shader;
 class BlocksDatabase;
 class World;
+class Renderer;
 
 class Game
 {
@@ -33,6 +34,7 @@ public:
 	Shader* vertShader;
 	TextureAtlas atlas;
 	BlocksDatabase* blocks;
+	std::unique_ptr<Renderer> m_renderer;
 	std::unique_ptr<World> m_world;
 
 protected:

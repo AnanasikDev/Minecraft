@@ -8,20 +8,32 @@
 template <typename GLT>
 constexpr GLenum GetGLEnumType() {
 	if (std::is_same_v<GLT, float>) return GL_FLOAT;
+
 	if (std::is_same_v<GLT, int>) return GL_INT;
 	if (std::is_same_v<GLT, unsigned int>) return GL_UNSIGNED_INT;
+
+	if (std::is_same_v<GLT, short>) return GL_SHORT;
+	if (std::is_same_v<GLT, unsigned short>) return GL_UNSIGNED_SHORT;
+
+	if (std::is_same_v<GLT, char>) return GL_BYTE;
+	if (std::is_same_v<GLT, unsigned char>) return GL_UNSIGNED_BYTE;
+
 	printf("Unknown GLenum in %s:%d", __FILE__, __LINE__);
 	return GL_FLOAT;
 }
 
-using Coord = short;
-
-enum class ScalarDirection : char
+constexpr bool IsGLEnumTypeInt(GLenum type)
 {
-	Negative = -1,
-	Zero = 0,
-	Positive = 1
-};
+	return 
+		type == GL_BYTE || 
+		type == GL_UNSIGNED_BYTE || 
+		type == GL_SHORT || 
+		type == GL_UNSIGNED_SHORT || 
+		type == GL_INT || 
+		type == GL_UNSIGNED_INT;
+}
+
+using Coord = short;
 
 enum class GridVec : unsigned char
 {

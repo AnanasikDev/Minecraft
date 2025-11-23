@@ -28,7 +28,7 @@ TextureAtlas::TextureID TextureAtlas::GetTextureIDByBlock(Block::ID id, GridVec 
 	}
 }
 
-void TextureAtlas::ReadAtlas(std::string path, unsigned int wrapMode)
+void TextureAtlas::BindAtlas(std::string path, unsigned int wrapMode)
 {
 	glGenTextures(1, &m_id);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, m_id);

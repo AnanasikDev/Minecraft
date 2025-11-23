@@ -9,8 +9,12 @@ class WindowsKeyboard : public IKeyboard
 {
 public:
 	WindowsKeyboard(GLFWwindow& window);
-	bool GetKey(Key key) const override;
+	KeyState GetKeyState(Key key) const override;
+	void Update() const override;
 
+protected:
+	KeyState* const GetKeyHandleRW(Key key) const override;
+	const KeyState* const GetKeyHandleR(Key key) const override;
 private:
 	GLFWwindow& window;
 };

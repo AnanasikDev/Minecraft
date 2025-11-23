@@ -18,7 +18,7 @@ private:
 	template <GLenum type, int size>
 	void _pushAttribute(unsigned int count, unsigned int stride)
 	{
-		if constexpr (type == GL_BYTE || type == GL_UNSIGNED_BYTE || type == GL_SHORT || type == GL_UNSIGNED_SHORT || type == GL_INT || type == GL_UNSIGNED_INT)
+		if constexpr (IsGLEnumTypeInt(type))
 		{
 			glVertexAttribIPointer(m_position, count, type, stride, (void*)m_start);
 		}

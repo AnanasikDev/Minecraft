@@ -1,6 +1,5 @@
 #pragma once
 
-
 class IMouse;
 class IKeyboard;
 

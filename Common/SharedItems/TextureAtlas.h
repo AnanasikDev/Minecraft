@@ -18,5 +18,5 @@ public:
 
 	TextureID GetTextureIDByBlock(Block::ID id, GridVec face /* state, etc */);
 
-	void ReadAtlas(std::string path, unsigned int wrapMode);
+	void BindAtlas(std::string path, unsigned int wrapMode);
 };

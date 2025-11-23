@@ -85,14 +85,78 @@ enum class Key
 	ARROW_RIGHT,
 	ARROW_DOWN,
 	ARROW_LEFT,
-	SPACE
+	SPACE,
+
+	LAST_KEY
+};
+
+enum class KeyState
+{
+	Idle = 0,
+	Press,
+	Hold,
+	Release
 };
 
 class IKeyboard
 {
 public:
-	virtual bool GetKey(Key key) const = 0;
+	static constexpr int MAX_KEYS = 512;
+	virtual KeyState GetKeyState(Key key) const = 0;
+	virtual void Update() const = 0;
+	inline bool IsKeyDown(Key key) const
+	{
+		const KeyState state{ *GetKeyHandleR(key) };
+		return state == KeyState::Hold || state == KeyState::Press;
+	}
+	inline bool IsKeyUp(Key key) const
+	{
+		const KeyState state{ *GetKeyHandleR(key) };
+		return state == KeyState::Idle || state == KeyState::Release;
+	}
+	inline bool IsKeyHeld(Key key) const
+	{
+		const KeyState state{ *GetKeyHandleR(key) };
+		return state == KeyState::Hold;
+	}
+	inline bool IsKeyReleased(Key key) const
+	{
+		const KeyState state{ *GetKeyHandleR(key) };
+		return state == KeyState::Release;
+	}
+	inline bool IsKeyPressed(Key key) const
+	{
+		const KeyState state{ *GetKeyHandleR(key) };
+		return state == KeyState::Press;
+	}
+	inline bool IsKeyIdle(Key key) const
+	{
+		const KeyState state{ *GetKeyHandleR(key) };
+		return state == KeyState::Idle;
+	}
+
 	virtual ~IKeyboard() = default;
+
+protected:
+	KeyState* m_keystate;
+	virtual KeyState* const GetKeyHandleRW(Key key) const = 0;
+	virtual const KeyState* const GetKeyHandleR(Key key) const = 0;
+
+	inline void Flush() const
+	{
+		for (int key = 0; key < static_cast<int>(Key::LAST_KEY); key++)
+		{
+			KeyState& val = *GetKeyHandleRW(static_cast<Key>(key));
+			switch (val)
+			{
+			case KeyState::Idle:	val = KeyState::Idle; break;
+			case KeyState::Release: val = KeyState::Idle; break;
+			case KeyState::Press:	val = KeyState::Hold;  break;
+			case KeyState::Hold:	val = KeyState::Hold;  break;
+			default: break;
+			}
+		}
+	}
 };
 
 

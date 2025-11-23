@@ -40,12 +40,20 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ElementBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Entity.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gameobject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Gizmos.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)glh.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IPoolable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Mesh.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MeshRenderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Player.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PlayerInput.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Program.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Random.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RayTracer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Renderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RenderRequest.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SafeQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TextureAtlas.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Transform.h" />
@@ -65,23 +73,32 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)commons.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ElementBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Gameobject.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Gizmos.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Program.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Random.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RayTracer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Renderer.tpp">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Shader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)TextureAtlas.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Transform.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)VertexBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.mtl" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.mtl" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.mtl" />
-    <None Include="$(MSBuildThisFileDirectory)default.frag" />
-    <None Include="$(MSBuildThisFileDirectory)default.vert" />
-    <None Include="$(MSBuildThisFileDirectory)test.frag" />
-    <None Include="$(MSBuildThisFileDirectory)test.vert" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.frag" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.vert" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\test.frag" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\test.vert" />
+    <None Include="$(MSBuildThisFileDirectory)MeshRenderer.tpp">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)RenderRequest.tpp" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.obj">
@@ -136,6 +153,5 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
     </Image>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\Harvey2.jpg" />
   </ItemGroup>
 </Project>
