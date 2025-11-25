@@ -21,12 +21,11 @@ class Camera : public Gameobject
 private:
 
 	Frustum m_frustum;
-	float m_speed;
 	float m_sense;
 
 public:
 	Camera() = default;
-	Camera(Game* game, const Frustum& frustum, const Transform& transform, float speed, float sense);
+	Camera(Game* game, const Frustum& frustum, const Transform& transform, float sense);
 
 	glm::mat4 GetView() const;
 	glm::mat4 GetProjection() const;

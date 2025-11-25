@@ -21,42 +21,45 @@ class Game;
 class Chunk : public IRenderable
 {
 public:
-	static constexpr Coord XWIDTH{ 16 };
-	static constexpr Coord YHEIGHT{ 16 };
-	static constexpr Coord ZDEPTH{ 16 };
+	static constexpr int XWIDTH{ 16 };
+	static constexpr int YHEIGHT{ 16 };
+	static constexpr int ZDEPTH{ 16 };
 
-	static constexpr Coord MAX_STONE_HEIGHT{ 5 };
+	static constexpr int MAX_STONE_HEIGHT{ 8 };
 
 	int m_id{ 0 };
 	bool m_isDirty{ true };
-	bool m_isGPUDirty{ false };
+	std::atomic<bool> m_isGPUDirty{ false };
 	bool m_isReadyForRender{ false };
-	glm::ivec2 m_position;
-	std::atomic<int> m_workersAccess{ 0 };
+	glm::ivec3 m_position{ 0,0,0 };
+	std::atomic<bool> m_isGenerating{ false };
+	int m_version{ 0 };
 
-	std::unique_ptr<std::array<Block, XWIDTH* YHEIGHT* ZDEPTH>> m_blocks;
-	Block* At(Coord x, Coord y, Coord z);
-	const Block* At(Coord x, Coord y, Coord z) const;
-	void NewBlock(Coord x, Coord y, Coord z, BlockData* blockdata);
+	std::unique_ptr<std::array<Block, XWIDTH * YHEIGHT * ZDEPTH>> m_blocks;
+	Block* At(glm::ivec3 pos);
+	const Block* At(glm::ivec3 pos) const;
+	void NewBlock(glm::ivec3 pos, BlockData* blockdata);
 
 	void Generate();
-	void Remesh();
 	void UpdateGPUBuffers();
 	Chunk() = delete;
-	Chunk(glm::ivec2 pos, Game* game);
+	Chunk(glm::ivec3 pos, Game* game);
 	~Chunk();
 
 	void Render(Camera* camera) override;
 	void RenderDebug(Camera* camera) override;
-	constexpr bool IsBlockOnEdge(Coord x, Coord y, Coord z) const;
-	constexpr bool IsBlockInside(Coord x, Coord y, Coord z) const;
+	constexpr bool IsBlockOnEdge(glm::ivec3 pos) const;
+	constexpr bool IsBlockInside(glm::ivec3 pos) const;
 
-	void AddTop(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid);
-	void AddBottom(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid);
-	void AddRight(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid);
-	void AddLeft(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid);
-	void AddFront(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid);
-	void AddBack(Coord x, Coord y, Coord z, TextureAtlas::TextureID texid);
+	void AddTop(glm::ivec3 pos, TextureAtlas::TextureID texid);
+	void AddBottom(glm::ivec3 pos, TextureAtlas::TextureID texid);
+	void AddRight(glm::ivec3 pos, TextureAtlas::TextureID texid);
+	void AddLeft(glm::ivec3 pos, TextureAtlas::TextureID texid);
+	void AddFront(glm::ivec3 pos, TextureAtlas::TextureID texid);
+	void AddBack(glm::ivec3 pos, TextureAtlas::TextureID texid);
+
+	glm::ivec3 LocalToWorld(glm::ivec3 pos) const;
+	glm::ivec3 WorldToLocal(glm::ivec3 pos) const;
 
 private:
 	Game* m_game{ nullptr };
@@ -64,14 +67,11 @@ private:
 	MeshRenderer<FVertex> m_meshRenderer;
 	std::mutex m_mtx;
 	static int SGUID;
+	//MeshRenderer<DebugVertex> m_debugMeshRenderer;
 
 	void GenerateGrid();
-	void GenerateGeometry();
-	glm::ivec3 LocalToWorld(Coord x, Coord y, Coord z) const;
-
 	void AddFace(FVertex v00, FVertex v10, FVertex v11, FVertex v01);
-	
-	void GenerateBlock(Coord x, Coord y, Coord z, const Block& block);
+	void GenerateBlock(glm::ivec3 pos, const Block& block);
 
 	friend class World;
 };

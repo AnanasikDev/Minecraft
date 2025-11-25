@@ -13,7 +13,7 @@ public:
 	ElementBuffer();
 	~ElementBuffer()
 	{
-		//glDeleteBuffers(1, &m_id);
+		glDeleteBuffers(1, &m_id);
 	}
 
 	void LinkExternal(std::vector<unsigned int>* buffer, unsigned int size);

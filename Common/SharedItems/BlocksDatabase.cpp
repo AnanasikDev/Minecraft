@@ -4,6 +4,7 @@ void BlocksDatabase::Init()
 {
 	Register(Block::ID::Air, false, [](const BlockData& block, const Context& ctx)
 		{
+			block.Draw(ctx, TextureAtlas::TextureID::Stone);
 		});
 
 	Register(Block::ID::Dirt, true, [](const BlockData& block, const Context& ctx)
@@ -33,7 +34,7 @@ void BlocksDatabase::Init()
 					block.Draw(ctx, TextureAtlas::TextureID::GrassBlockSide);
 				}
 			}
-			break;
+				break;
 			case GridVec::Top:
 				block.Draw(ctx, TextureAtlas::TextureID::GrassBlockTop);
 				break;

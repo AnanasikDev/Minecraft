@@ -33,8 +33,6 @@ constexpr bool IsGLEnumTypeInt(GLenum type)
 		type == GL_UNSIGNED_INT;
 }
 
-using Coord = short;
-
 enum class GridVec : unsigned char
 {
 	Invalid,

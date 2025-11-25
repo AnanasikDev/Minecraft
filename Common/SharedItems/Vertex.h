@@ -32,6 +32,28 @@ struct BaseVertex
 	}
 };
 
+//template <typename Txyz, typename Tcolor>
+//struct ColorVertex : public BaseVertex<Txyz>
+//{
+//	Tcolor r, g, b;
+//
+//	ModelVertex(Txyz x, Txyz y, Txyz z, Tcolor r, Tcolor g, Tcolor b) : BaseVertex<Txyz>(x, y, z), r(r), g(g), b(b)
+//	{
+//	}
+//
+//	static constexpr inline unsigned int GetStride()
+//	{
+//		return	sizeof(Txyz) * 3 +
+//				sizeof(Tcolor) * 3 +
+//	}
+//
+//	static void SetLayout(BufferLayout* layout)
+//	{
+//		layout->PushAttribute<Txyz>(3, GetStride());
+//		layout->PushAttribute<Tcolor>(3, GetStride());
+//	}
+//};
+
 template <typename Txyz, typename Tuv>
 struct ModelVertex : public BaseVertex<Txyz>
 {

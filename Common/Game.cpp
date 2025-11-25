@@ -20,6 +20,7 @@
 #include "Shader.h"
 #include "Chunk.h"
 #include "Renderer.h"
+#include "Block.h"
 
 Game::Game(const Input* const input, IGraphics* graphics) :
 	input(input),
@@ -80,16 +81,16 @@ void Game::Start()
 	m_world->Init(this);
 
 	static float vertices[8 * 3] = {
-			-0.5f, -0.5f, -0.5f,
-			-0.5f, 0.5f, -0.5f,
-			0.5f, 0.5f, -0.5f,
-			0.5f, -0.5f, -0.5f,
-			-0.5f, -0.5f, 0.5f,
-			-0.5f, 0.5f, 0.5f,
-			0.5f, 0.5f, 0.5f,
-			0.5f, -0.5f, 0.5f,
+			0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			1.0f, 1.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, 1.0f,
 	};
-	static unsigned int indices[12 * 2] = {
+	/*static unsigned int indices[12 * 2] = {
 		0, 1,
 		1, 2,
 		2, 3,
@@ -102,42 +103,21 @@ void Game::Start()
 		1, 5,
 		2, 6,
 		3, 7
+	};*/
+
+	static unsigned int indices[4] = {
+		0, 1, 2, 3
 	};
 
-	//static float vertices[8 * 3] = {
-	//	0, 0, 0,
-	//	0, 1, 0,
-	//	1, 1, 0,
-	//	1, 0, 0,
-	//	0, 0, 1,
-	//	0, 1, 1,
-	//	1, 1, 1,
-	//	1, 0, 1,
-	//};
-	//constexpr int tr = 1;
-	//static unsigned int indices[tr * 3] = {
-	//	0, 1, 2,
-	//	//0, 2, 3,
-	//	/*0, 1, 4,
-	//	5, 6, 2,
-	//	1, 3, 4*/
-	//};
+	Mesh<DebugVertex>::MESH_BOX.AddVertices(reinterpret_cast<DebugVertex*>(vertices), 8 * 3);
+	Mesh<DebugVertex>::MESH_BOX.AddIndices(indices, 4);
 
-	Mesh<DebugVertex> mesh;
-	mesh.AddVertices(reinterpret_cast<DebugVertex*>(vertices), 8 * 3);
-	mesh.AddIndices(indices, 12 * 2);
 	MeshRenderer<DebugVertex> meshRenderer;
-	meshRenderer.UseMesh(&mesh);
+	meshRenderer.UseMesh(&Mesh<DebugVertex>::MESH_BOX);
 	meshRenderer.UseRendererSystem(m_renderer.get());
 	meshRenderer.UpdateBuffers();
-	meshRenderer.m_mode = RENDER_MODE::WIREFRAME_MODE;
-	//meshRenderer.m_transform.Scale(glm::vec3(0.5f, 0.5f, 0.5f));
-
-	//VertexBuffer<DebugVertex> vbo;
-	//vbo.Bind();
-	//vbo.LinkExternal(reinterpret_cast<DebugVertex*>(vertices), 8 * 3);
-
-	Transform trans;
+	meshRenderer.m_mode = RENDER_MODE::LINE_MODE;
+	meshRenderer.m_transform.Scale(glm::vec3(16, 20, 16));
 
 	while(!quitting)
 	{
@@ -182,13 +162,27 @@ void Game::Start()
 		//Don't forget to use gameDeltaTime for smooth movement
 
 		m_player->Update();
-		m_world->FixedUpdate();
 		m_world->Update();
+		m_world->FixedUpdate();
 
 		m_world->Render(m_player.get());
 
-		meshRenderer.m_transform.Rotate(10, glm::vec3(0.5f, 0.5f, 0.0));
-		meshRenderer.Render(m_player->m_camera.get());
+		glm::ivec3 playerChunkId = m_player->m_transform.GetChunkPosition();
+		Chunk* chunk = m_world->GetChunkAt(playerChunkId);
+		if (chunk)
+		{
+			glm::ivec3 world = m_player->m_transform.GetBlockPosition();
+			glm::ivec3 local = chunk->WorldToLocal(world);
+			int height = m_world->GetHeightAt(world);
+			Block::ID expectedblockid = m_world->GetBlockIDAt(world);
+			if (local.y >= Chunk::YHEIGHT) local.y = Chunk::YHEIGHT - 1;
+			Block::ID realblockid = chunk->At(local)->m_data->id;
+			//printf("chunk: %02d %02d  local: %02d %02d %02d  world: %02d %02d %02d | expected block: %d  real block: %d\n", playerChunkId.x, playerChunkId.z, local.x, local.y, local.z, world.x, world.y, world.z, expectedblockid, realblockid);
+		}
+		//meshRenderer.Render(m_player->m_camera.get());
+
+		/*meshRenderer.m_transform.Rotate(10, glm::vec3(0.5f, 0.5f, 0.0));
+		meshRenderer.Render(m_player->m_camera.get());*/
 
 		glFlush();
 		GetInput().GetKeyboard().Update();

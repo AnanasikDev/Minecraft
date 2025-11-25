@@ -9,8 +9,8 @@ class VertexBuffer
 {
 private:
 	BufferLayout m_layout;
-	GLuint m_id;
-	std::vector<Vertex>* m_bufferPtr;
+	GLuint m_id{ 0 };
+	std::vector<Vertex>* m_bufferPtr{ nullptr };
 
 public:
 	
@@ -21,7 +21,7 @@ public:
 
 	~VertexBuffer()
 	{
-		//glDeleteBuffers(1, &m_id);
+		glDeleteBuffers(1, &m_id);
 	}
 
 	void LinkExternal(std::vector<Vertex>* buffer, unsigned int initSize)

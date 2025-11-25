@@ -14,6 +14,7 @@ struct Mesh
 {
 	std::unique_ptr<std::vector<Vertex>> m_vertices;
 	std::unique_ptr<std::vector<unsigned int>> m_indices;
+	static Mesh<DebugVertex> MESH_BOX;
 
 	Mesh()
 	{
@@ -23,6 +24,8 @@ struct Mesh
 	~Mesh() = default;
 	Mesh(Mesh&& other) = delete;
 	Mesh(const Mesh& other) = delete;
+	Mesh& operator=(const Mesh& other) = delete;
+	Mesh& operator=(Mesh&& other) = delete;
 
 	void AddVertices(Vertex* data, int count)
 	{

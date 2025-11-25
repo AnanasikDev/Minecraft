@@ -6,12 +6,11 @@
 #include "Game.h"
 #include "IInput.h"
 
-Camera::Camera(Game* game, const Frustum& frustum, const Transform& transform, float speed, float sense)
+Camera::Camera(Game* game, const Frustum& frustum, const Transform& transform, float sense)
 {
 	m_game = game;
 	m_frustum = frustum;
 	m_transform = transform;
-	m_speed = speed;
 	m_sense = sense;
 }
 
@@ -19,7 +18,6 @@ glm::mat4 Camera::GetView() const
 {
 	glm::mat4 res(1.0f);
 	res = glm::lookAt(m_transform.GetPosition(), m_transform.GetPosition() + m_transform.GetForward(), m_transform.GetUp());
-	res = glm::translate(res, -m_transform.GetPosition());
 	return res;
 }
 

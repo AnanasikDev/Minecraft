@@ -10,11 +10,11 @@ class Chunk;
 
 struct Context
 {
-	Coord x, y, z;
+	glm::ivec3 pos;
 	Chunk* const chunk;
 	GridVec vec;
 
-	Context(Coord x, Coord y, Coord z, GridVec vec, Chunk* const chunk) : x(x), y(y), z(z), vec(vec), chunk(chunk)
+	Context(glm::ivec3 pos, GridVec vec, Chunk* const chunk) : pos(pos), vec(vec), chunk(chunk)
 	{
 	}
 };

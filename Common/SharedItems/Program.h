@@ -43,4 +43,9 @@ struct Program
 		}
 		return success;
 	}
+
+	void Use()
+	{
+		glLinkProgram(shaderProgram);
+	}
 };

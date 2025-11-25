@@ -84,10 +84,20 @@ glm::mat4 Transform::GetModelMatrix() const
 	return mat;
 }
 
-glm::ivec2 Transform::GetChunkPosition() const
+glm::ivec3 Transform::GetChunkPosition() const
 {
-	return glm::ivec2(
-		static_cast<int>(roundf(m_position.x / Chunk::XWIDTH * 2)), 
-		static_cast<int>(roundf(m_position.z / Chunk::ZDEPTH * 2))
+	return glm::ivec3(
+		static_cast<int>(floorf(m_position.x / Chunk::XWIDTH)),
+		0,
+		static_cast<int>(floorf(m_position.z / Chunk::ZDEPTH))
+	);
+}
+
+glm::ivec3 Transform::GetBlockPosition() const
+{
+	return glm::ivec3(
+		static_cast<int>(floorf(m_position.x)),
+		static_cast<int>(floorf(m_position.y)),
+		static_cast<int>(floorf(m_position.z))
 	);
 }

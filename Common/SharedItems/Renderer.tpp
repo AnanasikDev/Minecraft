@@ -5,6 +5,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/mat4x4.hpp"
 
+#include "Shader.h"
 #include "Program.h"
 #include "Game.h"
 #include "Camera.h"

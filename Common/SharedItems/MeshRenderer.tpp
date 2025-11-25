@@ -15,6 +15,16 @@ MeshRenderer<Vertex>::MeshRenderer()
 }
 
 template <typename Vertex>
+MeshRenderer<Vertex>::~MeshRenderer()
+{
+	if (m_vaoid != 0)
+	{
+		glDeleteVertexArrays(1, &m_vaoid);
+		m_vaoid = 0;
+	}
+}
+
+template <typename Vertex>
 void MeshRenderer<Vertex>::UseRendererSystem(Renderer* renderer)
 {
 	m_rendererSystem = renderer;
@@ -29,7 +39,7 @@ void MeshRenderer<Vertex>::UseMesh(Mesh<Vertex>* mesh)
 template <typename Vertex>
 void MeshRenderer<Vertex>::UpdateBuffers()
 {
-	m_vbo.LinkExternal(&m_mesh->GetVertices(), m_mesh->GetVerticesCount() * sizeof(Vertex));
+	m_vbo.LinkExternal(&m_mesh->GetVertices(), m_mesh->GetVerticesCount() * Vertex::GetStride());
 	m_ebo.LinkExternal(&m_mesh->GetIndices(), m_mesh->GetIndicesCount() * sizeof(unsigned int));
 }
 

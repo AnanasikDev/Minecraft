@@ -43,7 +43,8 @@ public:
 
 	glm::mat4 GetModelMatrix() const;
 
-	glm::ivec2 GetChunkPosition() const;
+	glm::ivec3 GetChunkPosition() const;
+	glm::ivec3 GetBlockPosition() const;
 
 	inline glm::vec3 GetPosition() const { return m_position; }
 	inline glm::vec3 GetScale() const { return m_scale; }

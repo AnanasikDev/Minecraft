@@ -4,13 +4,13 @@
 const Block* BlockData::At(const Context& ctx, GridVec vec) const
 {
 	glm::ivec3 v = GridVecToVec3(vec);
-	return ctx.chunk->At(ctx.x + v.x, ctx.y + v.y, ctx.z + v.z);
+	return ctx.chunk->At(ctx.pos + v);
 }
 
 Block::ID BlockData::IDAt(const Context& ctx, GridVec vec) const
 {
 	glm::ivec3 v = GridVecToVec3(vec);
-	const Block* block = ctx.chunk->At(ctx.x + v.x, ctx.y + v.y, ctx.z + v.z);
+	const Block* block = ctx.chunk->At(ctx.pos + v);
 	if (block) return block->m_data->id;
 	return Block::ID::INVALID;
 }
@@ -23,22 +23,22 @@ void BlockData::Draw(const Context& ctx, TextureAtlas::TextureID textureid) cons
 	switch (ctx.vec)
 	{
 	case GridVec::Right:
-		ctx.chunk->AddRight(ctx.x, ctx.y, ctx.z, textureid);
+		ctx.chunk->AddRight(ctx.pos, textureid);
 		break;
 	case GridVec::Left:
-		ctx.chunk->AddLeft(ctx.x, ctx.y, ctx.z, textureid);
+		ctx.chunk->AddLeft(ctx.pos, textureid);
 		break;
 	case GridVec::Top:
-		ctx.chunk->AddTop(ctx.x, ctx.y, ctx.z, textureid);
+		ctx.chunk->AddTop(ctx.pos, textureid);
 		break;
 	case GridVec::Bottom:
-		ctx.chunk->AddBottom(ctx.x, ctx.y, ctx.z, textureid);
+		//ctx.chunk->AddBottom(ctx.pos, textureid);
 		break;
 	case GridVec::Front:
-		ctx.chunk->AddFront(ctx.x, ctx.y, ctx.z, textureid);
+		ctx.chunk->AddFront(ctx.pos, textureid);
 		break;
 	case GridVec::Back:
-		ctx.chunk->AddBack(ctx.x, ctx.y, ctx.z, textureid);
+		ctx.chunk->AddBack(ctx.pos, textureid);
 		break;
 	default:
 		break;
