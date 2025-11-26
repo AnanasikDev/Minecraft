@@ -11,6 +11,7 @@ Player::Player(Game* game) : Gameobject(game)
 	m_camera = std::make_unique<Camera>(m_game, Frustum(45.0f, glm::vec2(Game::WINDOW_WIDTH, Game::WINDOW_HEIGHT), 0.1f, 1000.0f), Transform(), 0.25f);
 	m_camera->m_transform.AttachTo(&m_transform);
 	m_transform.Translate(glm::vec3(0, 25, 0));
+	m_transform.Rotate(45, glm::vec3(0, 1, 0));
 }
 
 Player::~Player()

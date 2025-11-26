@@ -17,12 +17,18 @@ public:
         queue.push(value);
     }
 
-    bool try_pop(T& out_value)
+    bool tryPop(T& out_value)
     {
         std::lock_guard<std::mutex> lock(mtx);
         if (queue.empty()) return false;
         out_value = queue.front();
         queue.pop();
         return true;
+    }
+
+    bool isEmpty()
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        return queue.empty();
     }
 };

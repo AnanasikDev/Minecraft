@@ -14,7 +14,7 @@ struct Mesh
 {
 	std::unique_ptr<std::vector<Vertex>> m_vertices;
 	std::unique_ptr<std::vector<unsigned int>> m_indices;
-	static Mesh<DebugVertex> MESH_BOX;
+	//static Mesh<DebugVertex> MESH_BOX;
 
 	Mesh()
 	{
@@ -29,7 +29,7 @@ struct Mesh
 
 	void AddVertices(Vertex* data, int count)
 	{
-		m_vertices->reserve(m_vertices->size() + count);
+		//m_vertices->reserve(m_vertices->size() + count);
 		for (int i = 0; i < count; i++)
 		{
 			m_vertices->push_back(data[i]);
@@ -38,7 +38,7 @@ struct Mesh
 
 	void AddIndices(unsigned int* data, int count)
 	{
-		m_indices->reserve(m_indices->size() + count);
+		///m_indices->reserve(m_indices->size() + count);
 		for (int i = 0; i < count; i++)
 		{
 			m_indices->push_back(data[i]);

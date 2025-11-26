@@ -105,7 +105,7 @@ void Game::Start()
 		3, 7
 	};*/
 
-	static unsigned int indices[4] = {
+	/*static unsigned int indices[4] = {
 		0, 1, 2, 3
 	};
 
@@ -117,7 +117,7 @@ void Game::Start()
 	meshRenderer.UseRendererSystem(m_renderer.get());
 	meshRenderer.UpdateBuffers();
 	meshRenderer.m_mode = RENDER_MODE::LINE_MODE;
-	meshRenderer.m_transform.Scale(glm::vec3(16, 20, 16));
+	meshRenderer.m_transform.Scale(glm::vec3(16, 20, 16));*/
 
 	while(!quitting)
 	{

@@ -39,8 +39,16 @@ void MeshRenderer<Vertex>::UseMesh(Mesh<Vertex>* mesh)
 template <typename Vertex>
 void MeshRenderer<Vertex>::UpdateBuffers()
 {
+	while (glGetError());
+	//printf("Updating buffers v:%d i:%d\n", m_mesh->GetVerticesCount(), m_mesh->GetIndicesCount());
+
 	m_vbo.LinkExternal(&m_mesh->GetVertices(), m_mesh->GetVerticesCount() * Vertex::GetStride());
 	m_ebo.LinkExternal(&m_mesh->GetIndices(), m_mesh->GetIndicesCount() * sizeof(unsigned int));
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		std::cerr << "OpenGL error: " << err << std::endl;
+	}
 }
 
 template <typename Vertex>

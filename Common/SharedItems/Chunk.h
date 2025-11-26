@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <array>
+#include <atomic>
 #include <mutex>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
@@ -21,6 +22,7 @@ class Game;
 class Chunk : public IRenderable
 {
 public:
+	int faces = 0;
 	static constexpr int XWIDTH{ 16 };
 	static constexpr int YHEIGHT{ 16 };
 	static constexpr int ZDEPTH{ 16 };
@@ -29,7 +31,6 @@ public:
 
 	int m_id{ 0 };
 	bool m_isDirty{ true };
-	std::atomic<bool> m_isGPUDirty{ false };
 	bool m_isReadyForRender{ false };
 	glm::ivec3 m_position{ 0,0,0 };
 	std::atomic<bool> m_isGenerating{ false };
@@ -67,6 +68,7 @@ private:
 	MeshRenderer<FVertex> m_meshRenderer;
 	std::mutex m_mtx;
 	static int SGUID;
+	GLsync m_glSyncFence{ 0 };
 	//MeshRenderer<DebugVertex> m_debugMeshRenderer;
 
 	void GenerateGrid();

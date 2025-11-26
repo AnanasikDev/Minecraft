@@ -17,7 +17,6 @@ int Chunk::SGUID = 0;
 Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 {
 	m_isDirty = true;
-	m_isGPUDirty = false;
 	m_isGenerating = false;
 	m_isReadyForRender = false;
 
@@ -110,7 +109,6 @@ void Chunk::NewBlock(glm::ivec3 pos, BlockData* blockdata)
 	
 	block->Set(blockdata);
 	m_isDirty = true;
-	m_isGPUDirty = true;
 	m_isReadyForRender = false;
 }
 
@@ -123,19 +121,40 @@ void Chunk::Generate()
 void Chunk::UpdateGPUBuffers()
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
-	m_isGPUDirty = false;
-	m_isGenerating = false;
 	m_meshRenderer.UpdateBuffers();
-	m_isReadyForRender = true;
+	m_glSyncFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	m_isGenerating = false;
+	//glFlush();
+	//m_isReadyForRender = true;
 }
 
 void Chunk::Render(Camera* camera)
 {
-	if (m_isDirty || m_isGPUDirty || !m_isReadyForRender) return;
-
+	while (glGetError());
 	std::lock_guard<std::mutex> lock(m_mtx);
-	
-	if (m_isDirty || m_isGPUDirty || !m_isReadyForRender) return;
+	if (m_glSyncFence != 0)
+	{
+		// Check the status of the fence without waiting indefinitely
+		GLenum wait_ret = glClientWaitSync(m_glSyncFence, GL_SYNC_FLUSH_COMMANDS_BIT, 20000);
+
+		if (wait_ret == GL_TIMEOUT_EXPIRED)
+		{
+			// GPU is still busy uploading the mesh. Do NOT draw.
+			return;
+		}
+
+		// The fence has been signaled (GPU finished upload).
+		glDeleteSync(m_glSyncFence);
+		m_glSyncFence = 0; // Mark the fence as consumed
+		//m_isReadyForRender = true;
+	}
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		std::cerr << "OpenGL error: " << err << std::endl;
+	}
+
+	//if (!m_isReadyForRender) return;
 
 	m_meshRenderer.Render(camera);
 }
@@ -147,6 +166,7 @@ void Chunk::RenderDebug(Camera* camera)
 
 void Chunk::AddFace(FVertex v00, FVertex v10, FVertex v11, FVertex v01)
 {
+	faces += 1;
 	const int index{ m_mesh.GetVerticesCount() };
 	FVertex v[4]{ v00, v10, v11, v01 };
 	m_mesh.AddVertices(v, 4);
