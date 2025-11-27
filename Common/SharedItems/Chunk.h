@@ -31,7 +31,7 @@ public:
 
 	int m_id{ 0 };
 	bool m_isDirty{ true };
-	bool m_isReadyForRender{ false };
+	std::atomic<bool> m_isReadyForRender{ false };
 	glm::ivec3 m_position{ 0,0,0 };
 	std::atomic<bool> m_isGenerating{ false };
 	int m_version{ 0 };
@@ -68,7 +68,6 @@ private:
 	MeshRenderer<FVertex> m_meshRenderer;
 	std::mutex m_mtx;
 	static int SGUID;
-	GLsync m_glSyncFence{ 0 };
 	//MeshRenderer<DebugVertex> m_debugMeshRenderer;
 
 	void GenerateGrid();

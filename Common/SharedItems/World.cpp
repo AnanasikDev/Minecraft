@@ -7,23 +7,23 @@
 World::World()
 {
 	m_isRunning = true;
-	/*constexpr int workerThreadsCount = 3;
+	constexpr int workerThreadsCount = 3;
 	for (int i = 0; i < workerThreadsCount; i++)
 	{
 		m_workerThreads.push_back(std::thread(&World::AsyncUpdate, this));
-	}*/
+	}
 }
 
 World::~World()
 {
 	m_isRunning = false;
-	/*for (int i = 0; i < m_workerThreads.size(); i++)
+	for (int i = 0; i < m_workerThreads.size(); i++)
 	{
 		if (m_workerThreads[i].joinable())
 		{
 			m_workerThreads[i].join();
 		}
-	}*/
+	}
 }
 
 void World::Init(Game* game)
@@ -35,7 +35,7 @@ void World::Update()
 {
 	const glm::ivec3 chunkPos{ m_game->m_player->m_transform.GetChunkPosition() };
 	{
-		//std::lock_guard<std::mutex> mapLock(m_chunksMutex);
+		std::lock_guard<std::mutex> mapLock(m_chunksMutex);
 		for (int dx = -GENERATION_DISTANCE; dx <= GENERATION_DISTANCE; dx++)
 		{
 			for (int dz = -GENERATION_DISTANCE; dz <= GENERATION_DISTANCE; dz++)
@@ -50,6 +50,7 @@ void World::Update()
 				Chunk* chunk{ GetChunkAt(check) };
 				if (chunk == nullptr)
 				{
+					
 					GenerateChunkAt(check);
 					chunk = GetChunkAt(check);
 				}
@@ -61,7 +62,6 @@ void World::Update()
 					chunk->m_isGPUDirty = true;
 					chunk->UpdateGPUBuffers();
 				}*/
-
 				if (chunk->m_isDirty)
 				{
 					chunk->m_isDirty = false;
@@ -74,26 +74,52 @@ void World::Update()
 		}
 	}
 	Chunk* chunk;
-	while (m_toUpdateGPUBuffersQueue.tryPop(chunk))
+	if (m_toUpdateGPUBuffersQueue.tryPop(chunk))
 	{
 		chunk->UpdateGPUBuffers();
-		//printf("Updating GPU at %d %d (%d)\n", chunk->m_position.x, chunk->m_position.z, chunk->m_version);
 	}
-	while (m_toMeshQueue.tryPop(chunk))
+	/*if (m_toMeshQueue.tryPop(chunk))
 	{
 		MeshChunk(chunk);
-	}
+	}*/
+}
 
+void World::Regenerate(glm::ivec3 pos)
+{
+	Chunk* chunk;
+	chunk = GetChunkAt(pos);
+	if (!chunk) GenerateChunkAt(pos);
+	chunk = GetChunkAt(pos);
+	chunk->m_isDirty = false;
+	chunk->m_isReadyForRender = false;
+	chunk->m_isGenerating = true;
+	m_toMeshQueue.push(chunk);
 }
 
 void World::FixedUpdate()
 {
-	
+	std::lock_guard<std::mutex> mapLock(m_chunksMutex);
+	std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it;
+	glm::ivec3 playerChunk = m_game->m_player->m_transform.GetChunkPosition();
+	for (it = m_chunks.begin(); it != m_chunks.end();)
+	{
+		const float distance = glm::length(glm::vec3(it->first) - glm::vec3(playerChunk));
+		printf("%.02f  %d  %d\n", distance, (it->second->m_isReadyForRender ? 1 : 0), (it->second->m_isGenerating ? 1 : 0));
+		if (distance > GENERATION_DISTANCE * 1.5f && it->second->m_isReadyForRender && it->second->m_isGenerating == false)
+		{
+			it->second->m_isReadyForRender = false;
+			it = m_chunks.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 
 void World::AsyncUpdate()
 {
-	/*while (m_isRunning)
+	while (m_isRunning)
 	{
 		Chunk* chunk;
 		if (m_toMeshQueue.tryPop(chunk))
@@ -101,35 +127,32 @@ void World::AsyncUpdate()
 			MeshChunk(chunk);
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}*/
+	}
 }
 
 void World::MeshChunk(Chunk* chunk)
 {
 	{
-		//std::lock_guard<std::mutex> lock(chunk->m_mtx);
+		std::lock_guard<std::mutex> lock(chunk->m_mtx);
 		chunk->faces = 0;
 		//printf("Mesing at %d %d (%d)\n", chunk->m_position.x, chunk->m_position.z, chunk->m_version);
 		chunk->m_version++;
 		chunk->m_mesh.ClearGeometry();
-		int y;
-		int blocks = 0;
 		for (int x = 0; x < Chunk::XWIDTH; x++)
 		{
 			for (int z = 0; z < Chunk::ZDEPTH; z++)
 			{
-				for (y = 0; y < Chunk::YHEIGHT; y++)
+				for (int y = 0; y < Chunk::YHEIGHT; y++)
 				{
 					glm::ivec3 locPos(x, y, z);
 					Block* block = chunk->At(locPos);
 					if (!block || block->IsAir()) continue;
 
 					chunk->GenerateBlock(locPos, *block);
-					blocks++;
 				}
 			}
 		}
-		printf("faces=%d verts=%d indices=%d\n", chunk->faces, chunk->m_mesh.GetVerticesCount(), chunk->m_mesh.GetVerticesCount());
+		//printf("faces=%d verts=%d indices=%d\n", chunk->faces, chunk->m_mesh.GetVerticesCount(), chunk->m_mesh.GetIndicesCount());
 
 		//printf("y= %d faces=%d verts=%d blocks=%d\n", y, chunk->faces, chunk->m_mesh.GetVerticesCount(), blocks);
 	}
@@ -152,7 +175,7 @@ int World::GetHeightAt(glm::ivec3 pos)
 {
 	//return 10;
 	//float mountains = fabsf(powf(m_perlin.noise2D(pos.x * MOUNTAINS_NOISE_SCALE, pos.z * MOUNTAINS_NOISE_SCALE), 3.5f)) * 0.0f;
-	//return (0.45f + m_perlin.noise2D(pos.x * BASE_NOISE_SCALE, pos.z * BASE_NOISE_SCALE) / 7.0f) * 16;// +Random::GetFloat(-0.0075f, 0.0075f);// +mountains;
+	return (0.45f + m_perlin.noise2D(pos.x * BASE_NOISE_SCALE, pos.z * BASE_NOISE_SCALE)) * 16;// +Random::GetFloat(-0.0075f, 0.0075f);// +mountains;
 	//return fabsf(powf(m_perlin.noise2D(x * MOUNTAINS_NOISE_SCALE, z * MOUNTAINS_NOISE_SCALE), 3.5f) * 4.0f);
 	//return abs(pos.x) % 16;
 	//return sinf(static_cast<float>(pos.x) / 30.0f) * 0.2f + 7.0f;
@@ -185,12 +208,12 @@ Block::ID World::GetBlockIDAt(glm::ivec3 worldPos)
 void World::Render(Player* player)
 {
 	{
-		//std::lock_guard<std::mutex> mapLock(m_chunksMutex);
+		std::lock_guard<std::mutex> mapLock(m_chunksMutex);
 		std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it;
 		int num = 0;
 		for (it = m_chunks.begin(); it != m_chunks.end(); ++it)
 		{
-			if (it->second && it->second->m_isGenerating == 0)
+			if (it->second && it->second->m_isGenerating == false)
 			{
 				it->second->Render(player->m_camera.get());
 				//it->second->RenderDebug(player->m_camera.get());

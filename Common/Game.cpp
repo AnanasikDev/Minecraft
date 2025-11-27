@@ -119,6 +119,12 @@ void Game::Start()
 	meshRenderer.m_mode = RENDER_MODE::LINE_MODE;
 	meshRenderer.m_transform.Scale(glm::vec3(16, 20, 16));*/
 
+	/*int x = 7;
+	int z = -16;
+	m_player->m_transform.Translate(glm::ivec3(x * 16, 0, z * 16));
+	m_world->Regenerate(glm::ivec3(x, 0, z));
+	m_world->Regenerate(glm::ivec3(x + 1, 0, z));*/
+
 	while(!quitting)
 	{
 		ProcessInput();
@@ -161,6 +167,25 @@ void Game::Start()
 		//Update and Draw your game here
 		//Don't forget to use gameDeltaTime for smooth movement
 
+		//if (GetInput().GetKeyboard().IsKeyPressed(Key::H))
+		//{
+		//	m_world->Regenerate(glm::ivec3(x, 0, z));
+		//}
+		//if (GetInput().GetKeyboard().IsKeyPressed(Key::J))
+		//{
+		//	//m_world->Regenerate(glm::ivec3(6, 0, -17));
+		//	//m_world->Regenerate(glm::ivec3(6, 0, -15));
+		//	//m_world->Regenerate(glm::ivec3(5, 0, -16));
+		//	m_world->Regenerate(glm::ivec3(x + 1, 0, z));
+		//}
+		//if (GetInput().GetKeyboard().IsKeyPressed(Key::K))
+		//{
+		//	//m_world->Regenerate(glm::ivec3(6, 0, -17));
+		//	//m_world->Regenerate(glm::ivec3(6, 0, -15));
+		//	//m_world->Regenerate(glm::ivec3(5, 0, -16));
+		//	m_world->Regenerate(glm::ivec3(x + 2, 0, z));
+		//}
+
 		m_player->Update();
 		m_world->Update();
 		m_world->FixedUpdate();
@@ -184,7 +209,7 @@ void Game::Start()
 		/*meshRenderer.m_transform.Rotate(10, glm::vec3(0.5f, 0.5f, 0.0));
 		meshRenderer.Render(m_player->m_camera.get());*/
 
-		glFlush();
+		//glFlush();
 		GetInput().GetKeyboard().Update();
 		graphics->SwapBuffer();
 

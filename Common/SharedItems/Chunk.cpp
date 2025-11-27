@@ -122,37 +122,15 @@ void Chunk::UpdateGPUBuffers()
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
 	m_meshRenderer.UpdateBuffers();
-	m_glSyncFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	m_isGenerating = false;
+	m_isReadyForRender = true;
 	//glFlush();
-	//m_isReadyForRender = true;
 }
 
 void Chunk::Render(Camera* camera)
 {
-	while (glGetError());
 	std::lock_guard<std::mutex> lock(m_mtx);
-	if (m_glSyncFence != 0)
-	{
-		// Check the status of the fence without waiting indefinitely
-		GLenum wait_ret = glClientWaitSync(m_glSyncFence, GL_SYNC_FLUSH_COMMANDS_BIT, 20000);
-
-		if (wait_ret == GL_TIMEOUT_EXPIRED)
-		{
-			// GPU is still busy uploading the mesh. Do NOT draw.
-			return;
-		}
-
-		// The fence has been signaled (GPU finished upload).
-		glDeleteSync(m_glSyncFence);
-		m_glSyncFence = 0; // Mark the fence as consumed
-		//m_isReadyForRender = true;
-	}
-	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		std::cerr << "OpenGL error: " << err << std::endl;
-	}
+	
 
 	//if (!m_isReadyForRender) return;
 

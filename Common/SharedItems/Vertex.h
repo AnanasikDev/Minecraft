@@ -66,9 +66,10 @@ struct ModelVertex : public BaseVertex<Txyz>
 
 	static constexpr inline unsigned int GetStride()
 	{
-		return	sizeof(Txyz) * 3 +
-				sizeof(Tuv) * 2 +
-				sizeof(TextureAtlas::TextureID);
+		//return	sizeof(Txyz) * 3 +
+		//		sizeof(Tuv) * 2 +
+		//		sizeof(TextureAtlas::TextureID);
+		return sizeof(ModelVertex<Txyz, Tuv>);
 	}
 
 	static void SetLayout(BufferLayout* layout)

@@ -39,6 +39,7 @@ void MeshRenderer<Vertex>::UseMesh(Mesh<Vertex>* mesh)
 template <typename Vertex>
 void MeshRenderer<Vertex>::UpdateBuffers()
 {
+	glBindVertexArray(m_vaoid);
 	while (glGetError());
 	//printf("Updating buffers v:%d i:%d\n", m_mesh->GetVerticesCount(), m_mesh->GetIndicesCount());
 
@@ -49,6 +50,7 @@ void MeshRenderer<Vertex>::UpdateBuffers()
 	{
 		std::cerr << "OpenGL error: " << err << std::endl;
 	}
+	glBindVertexArray(0);
 }
 
 template <typename Vertex>

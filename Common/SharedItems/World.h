@@ -19,7 +19,7 @@ class World
 {
 public:
 	Game* m_game{ nullptr };
-	static constexpr float BASE_NOISE_SCALE{ 0.2f };
+	static constexpr float BASE_NOISE_SCALE{ 0.02f };
 	static constexpr float CAVES_NOISE_SCALE{ 0.075f };
 	static constexpr float MOUNTAINS_NOISE_SCALE{ 0.02f };
 	static constexpr int GENERATION_DISTANCE{ 3 };
@@ -40,6 +40,7 @@ public:
 
 	Chunk* GetChunkAt(glm::ivec3 pos);
 	void GenerateChunkAt(glm::ivec3 chunkPos);
+	void Regenerate(glm::ivec3 pos);
 
 private:
 	siv::PerlinNoise::seed_type m_seed{ 123456u };

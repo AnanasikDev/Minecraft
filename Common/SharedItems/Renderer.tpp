@@ -18,6 +18,8 @@
 template <typename Vertex>
 void Renderer::Push(RenderRequest<Vertex> request)
 {
+	while (glGetError());
+
 	glBindVertexArray(request.m_vao);
 
 	//request.m_matModel = glm::translate(request.m_matModel, glm::vec3(1.f, 0.0f, 0.0f));
@@ -36,4 +38,10 @@ void Renderer::Push(RenderRequest<Vertex> request)
 		mode = request.m_modeOverride;
 
 	glDrawElements(mode, request.m_ebo->GetLength(), GL_UNSIGNED_INT, nullptr);
+
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		std::cerr << "OpenGL error: " << err << std::endl;
+	}
 }
