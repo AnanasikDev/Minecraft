@@ -6,22 +6,14 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-static KeyState keystates[IKeyboard::MAX_KEYS];
+static KeyState keyboard_keystates[IKeyboard::MAX_KEYS];
+static KeyState mouse_keystates[IMouse::MAX_BUTTONS];
 
 WindowsMouse::WindowsMouse(GLFWwindow& window) : window(window)
 {
 	glfwSetScrollCallback(&window, ScrollCallback);
-}
-
-bool WindowsMouse::GetButtonDown(MouseButtons button) const
-{
-	switch (button)
-	{
-	case MouseButtons::LEFT: return glfwGetMouseButton(&window, GLFW_MOUSE_BUTTON_LEFT);
-	case MouseButtons::RIGHT: return glfwGetMouseButton(&window, GLFW_MOUSE_BUTTON_RIGHT);
-	case MouseButtons::MIDDLE: return glfwGetMouseButton(&window, GLFW_MOUSE_BUTTON_MIDDLE);
-	default:std::cout << "ERROR::INPUT::WINDOWS Mouse button not supported: " << static_cast<int>(button) << std::endl; return false;
-	}
+	glfwSetMouseButtonCallback(&window, MouseButtonCallback);
+	m_keystate = mouse_keystates;
 }
 
 glm::vec2 WindowsMouse::impl_GetPosition() const
@@ -43,30 +35,58 @@ void WindowsMouse::ScrollCallback(GLFWwindow* /*window*/, double /*xOffset*/, do
 	scrollDelta = static_cast<float>(yOffset);
 }
 
-static void KeyEventCallback(GLFWwindow*, int key, int, int action, int)
+void WindowsMouse::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (action == GLFW_PRESS)
 	{
 		//printf("press\n");
-		if (keystates[key] == KeyState::Idle || keystates[key] == KeyState::Release)
+		if (mouse_keystates[button] == KeyState::Idle || mouse_keystates[button] == KeyState::Release)
 		{
-			keystates[key] = KeyState::Press;
+			mouse_keystates[button] = KeyState::Press;
 		}
-		else if (keystates[key] == KeyState::Hold || keystates[key] == KeyState::Press)
+		else if (mouse_keystates[button] == KeyState::Hold || mouse_keystates[button] == KeyState::Press)
 		{
-			keystates[key] = KeyState::Hold;
+			mouse_keystates[button] = KeyState::Hold;
 		}
 	}
 	else if (action == GLFW_RELEASE)
 	{
 		//printf("release\n");
-		if (keystates[key] == KeyState::Idle || keystates[key] == KeyState::Release)
+		if (mouse_keystates[button] == KeyState::Idle || mouse_keystates[button] == KeyState::Release)
 		{
-			keystates[key] = KeyState::Idle;
+			mouse_keystates[button] = KeyState::Idle;
 		}
-		else if (keystates[key] == KeyState::Hold || keystates[key] == KeyState::Press)
+		else if (mouse_keystates[button] == KeyState::Hold || mouse_keystates[button] == KeyState::Press)
 		{
-			keystates[key] = KeyState::Release;
+			mouse_keystates[button] = KeyState::Release;
+		}
+	}
+}
+
+static void KeyEventCallback(GLFWwindow*, int key, int, int action, int)
+{
+	if (action == GLFW_PRESS)
+	{
+		//printf("press\n");
+		if (keyboard_keystates[key] == KeyState::Idle || keyboard_keystates[key] == KeyState::Release)
+		{
+			keyboard_keystates[key] = KeyState::Press;
+		}
+		else if (keyboard_keystates[key] == KeyState::Hold || keyboard_keystates[key] == KeyState::Press)
+		{
+			keyboard_keystates[key] = KeyState::Hold;
+		}
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		//printf("release\n");
+		if (keyboard_keystates[key] == KeyState::Idle || keyboard_keystates[key] == KeyState::Release)
+		{
+			keyboard_keystates[key] = KeyState::Idle;
+		}
+		else if (keyboard_keystates[key] == KeyState::Hold || keyboard_keystates[key] == KeyState::Press)
+		{
+			keyboard_keystates[key] = KeyState::Release;
 		}
 	}
 }
@@ -74,7 +94,7 @@ static void KeyEventCallback(GLFWwindow*, int key, int, int action, int)
 WindowsKeyboard::WindowsKeyboard(GLFWwindow& window) : window(window)
 {
 	glfwSetKeyCallback(&window, KeyEventCallback);
-	m_keystate = keystates;
+	m_keystate = keyboard_keystates;
 }
 
 KeyState WindowsKeyboard::GetKeyState(Key key) const
@@ -144,7 +164,7 @@ const KeyState* const WindowsKeyboard::GetKeyHandleR(Key key) const
 	return GetKeyHandleRW(key);
 }
 
-void WindowsKeyboard::Update() const
+void WindowsKeyboard::Update()
 {
 	Flush();
 }

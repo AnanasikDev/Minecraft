@@ -31,4 +31,10 @@ public:
         std::lock_guard<std::mutex> lock(mtx);
         return queue.empty();
     }
+
+    T& front()
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        return queue.front();
+    }
 };

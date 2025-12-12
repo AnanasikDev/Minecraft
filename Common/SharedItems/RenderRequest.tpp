@@ -6,7 +6,7 @@
 template <typename Vertex>
 RenderRequest<Vertex>::RenderRequest(MeshRenderer<Vertex>* const meshRenderer, const Camera* const camera)
 {
-	m_matModel = meshRenderer->m_transform.GetModelMatrix();
+	m_matModel = meshRenderer->m_transform.GetWorldMatrix();
 	m_modeOverride = meshRenderer->m_mode;
 	m_matView = camera->GetView();
 	m_matProjection = camera->GetProjection();

@@ -12,7 +12,14 @@ public:
 
 	void Quit() override;
 
-	void SwapBuffer() override; // 
+	void SwapBuffer() override;
+	void PollEvents();
+
+	void LockCursor() override;
+	void UnlockCursor() override;
+	void BeginFrame() override;
+	void EndFrame() override;
+	void InitGUI() override;
 
 	XWindow& Window() const;
 

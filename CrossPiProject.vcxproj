@@ -73,8 +73,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>PCContent;PCContent\include;PCContent\include\glm;PCContent]\include\GLFW;PCContent\include\glad;Common;$(IncludePath)</IncludePath>
-    <LibraryPath>PCContent\lib;PCContent\lib\x64\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>PCContent\VisualLeakDetector\include;PCContent;PCContent\include;PCContent\include\glm;PCContent]\include\GLFW;PCContent\include\glad;Common;$(IncludePath)</IncludePath>
+    <LibraryPath>PCContent\lib;PCContent\lib\x64\Debug;PCContent\VisualLeakDetector\lib\Win64;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -111,8 +111,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WINDOWS_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>Common/stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Common/stb_image;Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>Common/stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Common/stb_image;Common/ImGui-master;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -139,12 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Common\ImGui-master\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="PCContent\glad.c" />
     <ClCompile Include="PCContent\WindowsGraphics.cpp" />
     <ClCompile Include="PCContent\WindowsInput.cpp" />
     <ClCompile Include="PCmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common\ImGui-master\backends\imgui_impl_glfw.h" />
     <ClInclude Include="PCContent\WindowsGraphics.h" />
     <ClInclude Include="PCContent\WindowsInput.h" />
   </ItemGroup>

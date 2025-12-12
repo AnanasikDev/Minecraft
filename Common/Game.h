@@ -2,6 +2,7 @@
 #include <memory>
 #include <glm/vec2.hpp>
 #include <vector>
+#include <deque>
 
 #include "glh.h"
 #include "TextureAtlas.h"
@@ -14,6 +15,7 @@ struct Shader;
 class BlocksDatabase;
 class World;
 class Renderer;
+class BaseDebug;
 
 class Game
 {
@@ -22,18 +24,18 @@ public:
 	static constexpr unsigned int WINDOW_HEIGHT = 768;
 	static constexpr float ASPECT_RATIO = 1024.0f / 768.0f;
 
-	Game(const Input* const input, IGraphics* graphics);
+	Game(Input* const input, IGraphics* graphics);
 	virtual ~Game();
 	void Start(); 
-	const Input& GetInput() const;
+	Input& GetInput();
 	void Quit();
+	inline float GetDeltaTime() const { return gameDeltaTime; }
 
 	std::unique_ptr<Player> m_player;
 	Program* program;
 	Shader* fragShader;
 	Shader* vertShader;
 	TextureAtlas atlas;
-	BlocksDatabase* blocks;
 	std::unique_ptr<Renderer> m_renderer;
 	std::unique_ptr<World> m_world;
 
@@ -42,8 +44,10 @@ protected:
 	virtual void LateUpdate(float /*gameDeltaTime*/) {}
 	virtual void Render() {}
 	virtual void PostRender() {}
+	void DrawCrosshair();
+	void DisplaySettings();
 	
-	const Input* const input;
+	Input* const input;
 	bool quitting{false};
 	float gameDeltaTime;
 
@@ -54,5 +58,10 @@ private:
 	void ClearScreen();
 
 	int frameCount{0};
+	bool m_displaySettings{ true };
+	float m_averageFPS{ 0 };
+	int COLLECT_FPS_DATA_FRAMES = 200;
+	std::deque<float> m_fpsDeque;
+	std::unique_ptr<BaseDebug> m_debug;
 };
 

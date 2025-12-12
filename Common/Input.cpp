@@ -2,7 +2,7 @@
 
 #include "IInput.h"
 
-Input::Input(const IKeyboard* const keyboard, const IMouse* const mouse) :
+Input::Input(IKeyboard* const keyboard, IMouse* const mouse) :
 	mouse(mouse),
 	keyboard(keyboard)
 {
@@ -15,12 +15,12 @@ Input::~Input()
 }
 
 
-const IKeyboard& Input::GetKeyboard() const
+IKeyboard& Input::GetKeyboard()
 {
 	return *keyboard;
 }
 
-const IMouse& Input::GetMouse() const
+IMouse& Input::GetMouse()
 {
 	return *mouse;
 }
@@ -30,13 +30,13 @@ glm::vec2 IMouse::GetPositionDelta() const
 	return m_currentPosition - m_prevPosition;
 }
 
-void IMouse::Update() const
+void IMouse::Update()
 {
 	m_prevPosition = m_currentPosition;
 	m_currentPosition = impl_GetPosition();
 }
 
-void IMouse::Init() const
+void IMouse::Init()
 {
 	m_currentPosition = impl_GetPosition();
 	m_prevPosition = m_currentPosition;

@@ -12,28 +12,36 @@
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
 #include "Renderer.h"
+#include "Renderer.tpp"
 #include "Mesh.h"
 
-template <typename Vertex>
-void Renderer::Push(RenderRequest<Vertex> request)
+void Renderer::Init()
 {
-	glBindVertexArray(request.m_vao);
+	static DebugVertex vertices[8] = {
+		DebugVertex(-0.5f, -0.5f, -0.5f),
+		DebugVertex(-0.5f, 0.5f, -0.5f),
+		DebugVertex(0.5f, 0.5f, -0.5f),
+		DebugVertex(0.5f, -0.5f, -0.5f),
+		DebugVertex(-0.5f, -0.5f, 0.5f),
+		DebugVertex(-0.5f, 0.5f, 0.5f),
+		DebugVertex(0.5f, 0.5f, 0.5f),
+		DebugVertex(0.5f, -0.5f, 0.5f),
+	};
+	static unsigned int indices[12 * 2] = {
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0,
+		4, 5,
+		5, 6,
+		6, 7,
+		7, 4,
+		0, 4,
+		1, 5,
+		2, 6,
+		3, 7
+	};
 
-	request.m_matModel = glm::translate(request.m_matModel, glm::vec3(1.f, 0.0f, 0.0f));
-
-	unsigned int umodel = glGetUniformLocation(m_game->program->shaderProgram, "u_ModelMat");
-	glUniformMatrix4fv(umodel, 1, GL_FALSE, glm::value_ptr(request.m_matModel));
-
-	unsigned int uview = glGetUniformLocation(m_game->program->shaderProgram, "u_ViewMat");
-	glUniformMatrix4fv(uview, 1, GL_FALSE, glm::value_ptr(request.m_matView));
-
-	unsigned int uproj = glGetUniformLocation(m_game->program->shaderProgram, "u_ProjMat");
-	glUniformMatrix4fv(uproj, 1, GL_FALSE, glm::value_ptr(request.m_matProjection));
-
-	unsigned int mode = m_mode;
-	if (request.m_modeOverride.has_value())
-		mode = request.m_modeOverride.value();
-
-	glDrawElements(mode, request.m_ebo->GetLength(), GL_UNSIGNED_INT, nullptr);
+	Mesh<DebugVertex>::MESH_BOX.AddIndices(indices, 12 * 2);
+	Mesh<DebugVertex>::MESH_BOX.AddVertices(vertices, 8);
 }
-

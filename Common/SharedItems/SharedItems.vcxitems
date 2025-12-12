@@ -17,6 +17,14 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\Game.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IGraphics.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IInput.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imconfig.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_internal.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_rectpack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_textedit.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_truetype.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\Input.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\PerlinNoise.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\stb_image\stb_image.h">
@@ -30,41 +38,61 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\tiny_obj_loader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)amath.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Block.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)BlockCompositeMesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BlockData.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BlocksDatabase.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BufferLayout.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Chunk.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ChunkCompositeMesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)commons.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)BaseDebug.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CompositeMesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ElementBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Entity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Face.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gameobject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)GeomContext.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gizmos.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)glh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IPoolable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Mesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MeshRenderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)OpenGLDebug.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Player.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)PlayerInput.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Program.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Random.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RayTracer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Ray.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RemeshRequest.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Renderer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RendererHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RenderRequest.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SafeQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)StructureData.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)StructureGenerator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TextureAtlas.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Transform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Vertex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)VertexBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)World.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorldGen.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Game.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_demo.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_draw.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_tables.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_widgets.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Input.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\stb_image_impl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)amath.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)BaseDebug.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Block.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BlockData.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BlocksDatabase.cpp" />
@@ -75,10 +103,13 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Gameobject.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Gizmos.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Mesh.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)OpenGLDebug.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Player.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Program.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Random.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)RayTracer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Ray.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RemeshRequest.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RendererHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Renderer.tpp">
       <FileType>Document</FileType>
     </ClCompile>
@@ -86,6 +117,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)TextureAtlas.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Transform.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)World.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WorldGen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.mtl" />

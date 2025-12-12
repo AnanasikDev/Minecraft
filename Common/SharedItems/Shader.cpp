@@ -63,7 +63,7 @@ bool Shader::LoadFromFile(const std::string& path)
 	if (stream)
 	{
 		stream.seekg(0, stream.end);
-		const int length = stream.tellg();
+		const int length(stream.tellg());
 		m_source.resize(length);
 		stream.seekg(0);
 		stream.read((char*)m_source.data(), length);

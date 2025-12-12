@@ -44,6 +44,15 @@ enum class GridVec : unsigned char
 	Left
 };
 
+inline GridVec directions[6]{
+	GridVec::Top,
+	GridVec::Bottom,
+	GridVec::Right,
+	GridVec::Left,
+	GridVec::Back,
+	GridVec::Front
+};
+
 glm::ivec3 GridVecToVec3(GridVec vec);
 
 #define UnwrapGridVec(vec) vec.x, vec.y, vec.y

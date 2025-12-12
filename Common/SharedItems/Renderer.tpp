@@ -14,11 +14,13 @@
 #include "ElementBuffer.h"
 #include "Renderer.h"
 #include "Mesh.h"
+#include "BaseDebug.h"
 
 template <typename Vertex>
 void Renderer::Push(RenderRequest<Vertex> request)
 {
-	while (glGetError());
+	//while (glGetError());
+	START_ERROR_CAPTURE();
 
 	glBindVertexArray(request.m_vao);
 
@@ -33,15 +35,22 @@ void Renderer::Push(RenderRequest<Vertex> request)
 	unsigned int uproj = glGetUniformLocation(m_game->program->shaderProgram, "u_ProjMat");
 	glUniformMatrix4fv(uproj, 1, GL_FALSE, glm::value_ptr(request.m_matProjection));
 
+	//unsigned int umaxlight = glGetUniformLocation(m_game->program->shaderProgram, "u_maxLightLevel");
+	//glUniform1i(uproj, 16);
+
 	unsigned int mode = m_mode;
 	if (request.m_modeOverride != RENDER_MODE::DEFAULT_MODE)
 		mode = request.m_modeOverride;
 
 	glDrawElements(mode, request.m_ebo->GetLength(), GL_UNSIGNED_INT, nullptr);
 
-	GLenum err;
+	/*GLenum err;
 	while ((err = glGetError()) != GL_NO_ERROR)
 	{
 		std::cerr << "OpenGL error: " << err << std::endl;
-	}
+	}*/
+
+	END_ERROR_CAPTURE();
+
+	VertexBuffer<Vertex>::NUM_RENDERED += request.m_vbo->GetLength();
 }

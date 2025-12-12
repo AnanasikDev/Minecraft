@@ -30,6 +30,9 @@
     <ClCompile Include="PCmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Common\ImGui-master\backends\imgui_impl_glfw.cpp">
+      <Filter>Libs&amp;Interfaces</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCContent\WindowsInput.h">
@@ -37,6 +40,9 @@
     </ClInclude>
     <ClInclude Include="PCContent\WindowsGraphics.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ImGui-master\backends\imgui_impl_glfw.h">
+      <Filter>Libs&amp;Interfaces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

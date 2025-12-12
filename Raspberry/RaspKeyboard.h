@@ -12,7 +12,7 @@ public:
 	RaspKeyboard();
 	~RaspKeyboard();
 	KeyState GetKeyState(Key key) const override;
-	void Update() const override;
+	void Update() override;
 
 private:
 	pthread_t keyboardThread;
@@ -22,6 +22,6 @@ private:
 	std::string FindActiveKeyboardEv();
 
 	//static void* ProcessKeyboardThread(void* arg);
-	void ProcessKeyboard() const;
+	void ProcessKeyboard();
 };
 

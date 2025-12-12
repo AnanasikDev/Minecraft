@@ -11,9 +11,6 @@
 #include "IInput.h"
 #include "Game.h"
 
-float lastTime{};
-float deltaTime{ 0.2f };
-
 int currentFrame = 0;
 
 RaspGraphics* graphics;
@@ -44,11 +41,6 @@ int main()
         peglDebugMessageControlKHR(DebugFn, nullptr);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
     }
-    printf("This cross project was inspired by BUas Student Ferri de Lange\n");
-    printf("This GPU supplied by  :%s\n", glGetString(GL_VENDOR));
-    printf("This GPU supports GL  :%s\n", glGetString(GL_VERSION));
-    printf("This GPU Renders with :%s\n", glGetString(GL_RENDERER));
-    printf("This GPU Shaders are  :%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     input = new Input(new RaspKeyboard(), new RaspMouse(graphics->Window().GetDisplay(), graphics->Window().GetWindow()));
    

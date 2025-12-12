@@ -5,12 +5,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "amath.h"
 #include "Game.h"
 #include "Program.h"
 #include "Shader.h"
 #include "Random.h"
 #include "Block.h"
 #include "World.h"
+#include "RendererHelper.h"
+#include "ChunkCompositeMesh.h"
 
 int Chunk::SGUID = 0;
 
@@ -24,35 +27,22 @@ Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 	m_blocks = std::make_unique<std::array<Block, XWIDTH * YHEIGHT * ZDEPTH>>();
 	m_meshRenderer.UseMesh(&m_mesh);
 	m_meshRenderer.UseRendererSystem(m_game->m_renderer.get());
-	Generate();
+	m_meshRenderer.m_transform.Translate(LocalToWorld(glm::ivec3(0, 0, 0)));
+	//Generate();
 
-	/*m_debugMeshRenderer.UseMesh(&Mesh<DebugVertex>::MESH_BOX);
+	m_debugMeshRenderer.UseMesh(&Mesh<DebugVertex>::MESH_BOX);
 	m_debugMeshRenderer.UseRendererSystem(m_game->m_renderer.get());
 	m_debugMeshRenderer.UpdateBuffers();
 	m_debugMeshRenderer.m_mode = RENDER_MODE::WIREFRAME_MODE;
-	m_debugMeshRenderer.m_transform.Translate(glm::vec3(pos.x, 0, pos.y));
-	m_debugMeshRenderer.m_transform.Scale(glm::vec3(16, 20, 16));*/
+	m_debugMeshRenderer.m_transform.Translate(glm::vec3(LocalToWorld(glm::ivec3(0))) + glm::vec3(XWIDTH, YHEIGHT, ZDEPTH) / 2.0f);
+	m_debugMeshRenderer.m_transform.ScaleLocal(glm::vec3(XWIDTH, YHEIGHT, ZDEPTH));
+
+	m_compositeMesh = std::make_unique<ChunkCompositeMesh<FVertex>>();
+	m_compositeMesh->m_meshPtr = &m_mesh;
 }
 
 Chunk::~Chunk()
 {
-}
-
-void Chunk::GenerateGrid()
-{
-	for (int x = 0; x < XWIDTH; x++)
-	{
-		for (int z = 0; z < ZDEPTH; z++)
-		{
-			for (int y = 0; y < YHEIGHT; y++)
-			{
-				glm::ivec3 locPos(x, y, z);
-				glm::ivec3 worldPos = LocalToWorld(locPos);
-				Block::ID id = m_game->m_world->GetBlockIDAt(worldPos);
-				NewBlock(locPos, m_game->blocks->Get(id));
-			}
-		}
-	}
 }
 
 glm::ivec3 Chunk::LocalToWorld(glm::ivec3 pos) const
@@ -70,52 +60,100 @@ glm::ivec3 Chunk::WorldToLocal(glm::ivec3 pos) const
 	return pos - LocalToWorld(glm::ivec3(0, 0, 0));
 }
 
-void Chunk::GenerateBlock(glm::ivec3 pos, const Block& block)
+StructureData* Chunk::AddStructure(StructureData data)
 {
-	block.m_data->GenerateGeometry(Context(pos, GridVec::Right, this));
-	block.m_data->GenerateGeometry(Context(pos, GridVec::Left, this));
-	block.m_data->GenerateGeometry(Context(pos, GridVec::Top, this));
-	block.m_data->GenerateGeometry(Context(pos, GridVec::Bottom, this));
-	block.m_data->GenerateGeometry(Context(pos, GridVec::Front, this));
-	block.m_data->GenerateGeometry(Context(pos, GridVec::Back, this));
+	m_structures.push_back(data);
+	return &m_structures.front();
 }
 
-constexpr bool Chunk::IsBlockOnEdge(glm::ivec3 pos) const
+std::vector<StructureData>& Chunk::GetStructures()
 {
-	return (pos.y == YHEIGHT - 1) || (pos.y == 0) || (pos.x == XWIDTH - 1) || (pos.x == 0) || (pos.z == ZDEPTH - 1) || (pos.z == 0);
+	return m_structures;
 }
 
-constexpr bool Chunk::IsBlockInside(glm::ivec3 pos) const
+void Chunk::GenerateBlock(glm::ivec3 localPos, const Block& block, RemeshRequest* request)
 {
-	return (pos.y < YHEIGHT) && (pos.y >= 0) && (pos.x < XWIDTH) && (pos.x >= 0) && (pos.z < ZDEPTH) && (pos.z >= 0);
+	BlockData* data = BlocksDatabase::Get(block.m_id);
+	glm::ivec3 worldPos{ LocalToWorld(localPos) };
+	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Right,	 m_game->m_world.get(), request, m_compositeMesh.get()));
+	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Left,	 m_game->m_world.get(), request, m_compositeMesh.get()));
+	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Top,	 m_game->m_world.get(), request, m_compositeMesh.get()));
+	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Bottom,  m_game->m_world.get(), request, m_compositeMesh.get()));
+	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Front,	 m_game->m_world.get(), request, m_compositeMesh.get()));
+	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Back,	 m_game->m_world.get(), request, m_compositeMesh.get()));
 }
 
-Block* Chunk::At(glm::ivec3 pos)
+std::array<glm::ivec3, 8> Chunk::GetCorners(glm::ivec3 chunkGridPos)
 {
-	if (IsBlockInside(pos)) return &(*m_blocks)[pos.z * XWIDTH * YHEIGHT + pos.x * YHEIGHT + pos.y];
+	glm::ivec3 center = World::ChunkGridToWorldBlock(chunkGridPos);
+	return {
+		glm::ivec3(center.x, center.y - 0,      center.z),
+		glm::ivec3(center.x, center.y - 0,      center.z + SIZE.z),
+		glm::ivec3(center.x, center.y + SIZE.y, center.z),
+		glm::ivec3(center.x, center.y + SIZE.y, center.z + SIZE.z),
+		glm::ivec3(center.x + SIZE.x, center.y - 0,      center.z),
+		glm::ivec3(center.x + SIZE.x, center.y - 0,      center.z + SIZE.z),
+		glm::ivec3(center.x + SIZE.x, center.y + SIZE.y, center.z),
+		glm::ivec3(center.x + SIZE.x, center.y + SIZE.y, center.z + SIZE.z),
+	};
+}
+
+std::vector<glm::ivec3> Chunk::GetChunkNeighboursAt(glm::ivec3 pos) const
+{
+	std::vector<glm::ivec3> result;
+	if (pos.x == 0) result.push_back(glm::ivec3(-1, 0, 0));
+	if (pos.x == XWIDTH - 1) result.push_back(glm::ivec3(1, 0, 0));
+
+	if (pos.y == 0) result.push_back(glm::ivec3(0, -1, 0));
+	if (pos.y == YHEIGHT - 1) result.push_back(glm::ivec3(0, 1, 0));
+
+	if (pos.z == 0) result.push_back(glm::ivec3(0, 0, -1));
+	if (pos.z == ZDEPTH - 1) result.push_back(glm::ivec3(0, 0, 1));
+	return result;
+}
+
+Block* Chunk::AtForce(glm::ivec3 pos)
+{
+	return &(*m_blocks)[pos.z * XWIDTH * YHEIGHT + pos.x * YHEIGHT + pos.y];
+}
+
+Block* Chunk::AtSafe(glm::ivec3 pos)
+{
+	if (World::IsLocalBlockInsideChunk(pos)) AtForce(pos);
 	else return nullptr;
 }
 
-const Block* Chunk::At(glm::ivec3 pos) const
+const Block* Chunk::AtSafe(glm::ivec3 pos) const
 {
-	if (IsBlockInside(pos)) return &(*m_blocks)[pos.z * XWIDTH * YHEIGHT + pos.x * YHEIGHT + pos.y];
+	if (World::IsLocalBlockInsideChunk(pos)) return AtForce(pos);
 	else return nullptr;
 }
 
-void Chunk::NewBlock(glm::ivec3 pos, BlockData* blockdata)
+const Block* Chunk::AtForce(glm::ivec3 pos) const
 {
-	Block* block = At(pos);
-	if (!block || block->m_data == blockdata) return;
-	
-	block->Set(blockdata);
-	m_isDirty = true;
-	m_isReadyForRender = false;
+	return &(*m_blocks)[pos.z * XWIDTH * YHEIGHT + pos.x * YHEIGHT + pos.y];
 }
 
-void Chunk::Generate()
+Block* Chunk::AtGlobal(glm::ivec3 pos)
 {
-	GenerateGrid();
-	m_meshRenderer.m_transform.Translate(LocalToWorld(glm::ivec3(0, 0, 0)));
+	return AtSafe(WorldToLocal(pos));
+}
+
+const Block* Chunk::AtGlobal(glm::ivec3 pos) const
+{
+	return AtSafe(WorldToLocal(pos));
+}
+
+void Chunk::NewBlock(glm::ivec3 pos, Block::ID id)
+{
+	Block* block = AtSafe(pos);
+	if (!block || block->m_id == id) return;
+
+	block->Set(id);
+	if (BlockData::IsLightSource(id))
+	{
+		m_game->m_world->UpdateLightBlock(LocalToWorld(pos), block->GetLightLevel());
+	}
 }
 
 void Chunk::UpdateGPUBuffers()
@@ -124,84 +162,46 @@ void Chunk::UpdateGPUBuffers()
 	m_meshRenderer.UpdateBuffers();
 	m_isGenerating = false;
 	m_isReadyForRender = true;
-	//glFlush();
 }
 
 void Chunk::Render(Camera* camera)
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
-	
-
-	//if (!m_isReadyForRender) return;
-
 	m_meshRenderer.Render(camera);
 }
 
 void Chunk::RenderDebug(Camera* camera)
 {
-	//m_debugMeshRenderer.Render(camera);
+	std::lock_guard<std::mutex> lock(m_mtx);
+	m_debugMeshRenderer.Render(camera);
 }
 
-void Chunk::AddFace(FVertex v00, FVertex v10, FVertex v11, FVertex v01)
-{
-	faces += 1;
-	const int index{ m_mesh.GetVerticesCount() };
-	FVertex v[4]{ v00, v10, v11, v01 };
-	m_mesh.AddVertices(v, 4);
-	unsigned int e[6]{ index + 3, index + 2, index, index + 2, index + 1, index };
-	m_mesh.AddIndices(e, 6);
-}
-
-void Chunk::AddTop(glm::ivec3 pos, TextureAtlas::TextureID texid)
-{
-	FVertex v00(pos.x, pos.y + 1, pos.z, 0, 0, texid);
-	FVertex v10(pos.x + 1, pos.y + 1, pos.z, 1, 0, texid);
-	FVertex v11(pos.x + 1, pos.y + 1, pos.z + 1, 1, 1, texid);
-	FVertex v01(pos.x, pos.y + 1, pos.z + 1, 0, 1, texid);
-	AddFace(v00, v10, v11, v01);
-}
-
-void Chunk::AddBottom(glm::ivec3 pos, TextureAtlas::TextureID texid)
-{
-	FVertex v00(pos.x, pos.y, pos.z, 0, 0, texid);
-	FVertex v10(pos.x + 1, pos.y, pos.z, 1, 0, texid);
-	FVertex v11(pos.x + 1, pos.y, pos.z + 1, 1, 1, texid);
-	FVertex v01(pos.x, pos.y, pos.z + 1, 0, 1, texid);
-	AddFace(v01, v11, v10, v00);
-}
-
-void Chunk::AddRight(glm::ivec3 pos, TextureAtlas::TextureID texid)
-{
-	FVertex v00(pos.x + 1, pos.y + 1, pos.z, 1, 0, texid);
-	FVertex v10(pos.x + 1, pos.y, pos.z, 1, 1, texid);
-	FVertex v11(pos.x + 1, pos.y, pos.z + 1, 0, 1, texid);
-	FVertex v01(pos.x + 1, pos.y + 1, pos.z + 1, 0, 0, texid);
-	AddFace(v00, v10, v11, v01);
-}
-
-void Chunk::AddLeft(glm::ivec3 pos, TextureAtlas::TextureID texid)
-{
-	FVertex v00(pos.x, pos.y + 1, pos.z, 1, 0, texid);
-	FVertex v10(pos.x, pos.y, pos.z, 1, 1, texid);
-	FVertex v11(pos.x, pos.y, pos.z + 1, 0, 1, texid);
-	FVertex v01(pos.x, pos.y + 1, pos.z + 1, 0, 0, texid);
-	AddFace(v01, v11, v10, v00);
-}
-
-void Chunk::AddBack(glm::ivec3 pos, TextureAtlas::TextureID texid)
-{
-	FVertex v00(pos.x, pos.y, pos.z, 1, 1, texid);
-	FVertex v10(pos.x + 1, pos.y, pos.z, 0, 1, texid);
-	FVertex v11(pos.x + 1, pos.y + 1, pos.z, 0, 0, texid);
-	FVertex v01(pos.x, pos.y + 1, pos.z, 1, 0, texid);
-	AddFace(v00, v10, v11, v01);
-}
-
-void Chunk::AddFront(glm::ivec3 pos, TextureAtlas::TextureID texid)
-{
-	FVertex v00(pos.x, pos.y, pos.z + 1, 1, 1, texid);
-	FVertex v10(pos.x + 1, pos.y, pos.z + 1, 0, 1, texid);
-	FVertex v11(pos.x + 1, pos.y + 1, pos.z + 1, 0, 0, texid);
-	FVertex v01(pos.x, pos.y + 1, pos.z + 1, 1, 0, texid);
-	AddFace(v01, v11, v10, v00);
-}
+//void Chunk::AddTop(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
+//{
+//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Top, texid, Block::GetLightLevelSafe(next));
+//}
+//
+//void Chunk::AddBottom(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
+//{
+//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Bottom, texid, Block::GetLightLevelSafe(next));
+//}
+//
+//void Chunk::AddRight(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
+//{
+//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Right, texid, Block::GetLightLevelSafe(next));
+//}
+//
+//void Chunk::AddLeft(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
+//{
+//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Left, texid, Block::GetLightLevelSafe(next));
+//}
+//
+//void Chunk::AddBack(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
+//{
+//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Back, texid, Block::GetLightLevelSafe(next));
+//}
+//
+//void Chunk::AddFront(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
+//{
+//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Front, texid, Block::GetLightLevelSafe(next));
+//}

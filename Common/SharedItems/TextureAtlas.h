@@ -14,9 +14,17 @@ public:
 		GrassBlockSide,
 		GrassBlockTop,
 		Stone,
+		OakLogSide,
+		OakLogTop,
+		OakLeaves,
+		Sand,
+		Bedrock,
+		Water,
+		FirLogSide,
+		FirLogTop,
+		FirLeaves,
+		Lamp,
 	};
-
-	TextureID GetTextureIDByBlock(Block::ID id, GridVec face /* state, etc */);
 
 	void BindAtlas(std::string path, unsigned int wrapMode);
 };

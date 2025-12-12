@@ -14,6 +14,8 @@ private:
 
 public:
 	
+	static int NUM_RENDERED;
+
 	VertexBuffer()
 	{
 		glGenBuffers(1, &m_id);
@@ -76,3 +78,6 @@ public:
 		return m_id;
 	}
 };
+
+template <typename V>
+int VertexBuffer<V>::NUM_RENDERED = 0;

@@ -6,28 +6,9 @@
 #include <unordered_map>
 #include "glm/vec3.hpp"
 
-class Chunk;
-
-struct Context
+struct Block
 {
-	glm::ivec3 pos;
-	Chunk* const chunk;
-	GridVec vec;
-
-	Context(glm::ivec3 pos, GridVec vec, Chunk* const chunk) : pos(pos), vec(vec), chunk(chunk)
-	{
-	}
-};
-
-struct BlockData;
-
-class Block
-{
-
-public:
 	static constexpr Block* Invalid = nullptr;
-
-	BlockData* m_data = nullptr;
 
 	enum class ID : unsigned char
 	{
@@ -35,16 +16,51 @@ public:
 		Dirt,
 		Grass,
 		Stone,
+		OakLog,
+		OakLeaves,
+		Sand,
+		Bedrock,
+		Water,
+		FirLog,
+		FirLeaves,
+		Lamp,
 
 		INVALID = 255
 	};
 
-	Block(BlockData* data);
-	Block() = default;
+	Block::ID m_id;
+	char m_light;
 
-	bool IsSolid() const;
-	bool IsAir() const;
-	bool IsValid() const;
+	Block() : m_id(ID::Air), m_light(0)
+	{
+	}
+	Block(Block::ID id) : m_id(id), m_light(0)
+	{
+	}
 
-	void Set(BlockData* data);
+	inline Block::ID GetID() const
+	{
+		return m_id;
+	}
+	
+	struct BlockData* GetData() const;
+
+
+	void Set(Block::ID id);
+
+	inline char GetLightLevel() const
+	{
+		return m_light;
+	}
+	
+	void SetLightLevel(char light)
+	{
+		m_light = light;
+	}
+
+	static inline char GetLightLevelSafe(const Block* block)
+	{
+		if (!block) return 15;
+		return block->GetLightLevel();
+	}
 };

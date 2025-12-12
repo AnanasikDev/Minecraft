@@ -8,9 +8,11 @@ class RaspMouse : public IMouse
 public:
 	RaspMouse(Display& display, Window& window);
 
-	bool GetButtonDown(MouseButtons button) const override;
+	bool impl_IsButtonDown(MouseButtons button) const;
 	glm::vec2 impl_GetPosition() const override;
 	float GetScrollDelta() const override;
+	void UpdateKey(MouseButtons button, bool state);
+	void Update() override;
 
 private:
 	Display& display ;

@@ -20,6 +20,11 @@ public:
 	void Quit() override;
 	void SwapBuffer() override;
 	GLFWwindow& Window() const;
+	void LockCursor() override;
+	void UnlockCursor() override;
+	void BeginFrame() override;	
+	void EndFrame() override;
+	void InitGUI() override;
 
 private:
 	GLFWwindow* window;

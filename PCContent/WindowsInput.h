@@ -10,7 +10,7 @@ class WindowsKeyboard : public IKeyboard
 public:
 	WindowsKeyboard(GLFWwindow& window);
 	KeyState GetKeyState(Key key) const override;
-	void Update() const override;
+	void Update() override;
 
 protected:
 	KeyState* const GetKeyHandleRW(Key key) const override;
@@ -25,7 +25,6 @@ class WindowsMouse : public IMouse
 public:
 	WindowsMouse(GLFWwindow& window);
 
-	bool GetButtonDown(MouseButtons button) const override;
 	glm::vec2 impl_GetPosition() const override;
 	float GetScrollDelta() const override;
 private:
@@ -33,4 +32,5 @@ private:
 
 	static float scrollDelta;
 	static void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+	static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 };

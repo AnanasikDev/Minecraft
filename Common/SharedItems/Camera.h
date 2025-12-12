@@ -4,6 +4,7 @@
 #include "glm/mat4x4.hpp"
 #include "Transform.h"
 #include "Gameobject.h"
+#include "amath.h"
 
 struct Frustum
 {
@@ -14,6 +15,7 @@ struct Frustum
 
 	Frustum() = default;
 	Frustum(float fov, glm::vec2 screen, float near, float far);
+	int ContainsAaBox(const AABB& refBox) const;
 };
 
 class Camera : public Gameobject
@@ -27,6 +29,8 @@ public:
 	Camera() = default;
 	Camera(Game* game, const Frustum& frustum, const Transform& transform, float sense);
 
+	Frustum& GetFrustum();
 	glm::mat4 GetView() const;
 	glm::mat4 GetProjection() const;
+	bool IsInFrustum(glm::vec3 pos, bool includeVertical) const;
 };

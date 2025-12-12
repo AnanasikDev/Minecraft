@@ -9,6 +9,10 @@
 #include "WindowsGraphics.h"
 #include "WindowsInput.h"
 
+#ifdef _DEBUG
+#include "vld.h"
+#endif
+
 #ifdef WINDOWS_BUILD
 // in case of a laptop with poor on board GPU, lets make sure we switch on any power gpu's we have to get max compatability
 extern "C"

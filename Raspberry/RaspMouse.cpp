@@ -1,12 +1,15 @@
 #include "RaspMouse.h"
 
+static KeyState mouse_keystates[IMouse::MAX_BUTTONS];
+
 RaspMouse::RaspMouse(Display& display, Window& window) :
 	display(display),
 	window(window)
 {
+	m_keystate = mouse_keystates;
 }
 
-bool RaspMouse::GetButtonDown(MouseButtons button) const
+bool RaspMouse::impl_IsButtonDown(MouseButtons button) const
 {
 	int root_x;
 	int root_y;
@@ -73,4 +76,42 @@ glm::vec2 RaspMouse::impl_GetPosition() const
 float RaspMouse::GetScrollDelta() const
 {
 	return 0;
+}
+
+void RaspMouse::UpdateKey(MouseButtons button, bool state)
+{
+	const bool isDown = state;
+	KeyState* val = &mouse_keystates[static_cast<int>(button)];
+	if (isDown)
+	{
+		switch (*val)
+		{
+		case KeyState::Idle:	*val = KeyState::Press; break;
+		case KeyState::Release: *val = KeyState::Press; break;
+		case KeyState::Press:	*val = KeyState::Hold; break;
+		case KeyState::Hold:	*val = KeyState::Hold; break;
+		default:
+			break;
+		}
+	}
+	else if (!isDown)
+	{
+		switch (*val)
+		{
+		case KeyState::Idle:	*val = KeyState::Idle; break;
+		case KeyState::Release: *val = KeyState::Idle; break;
+		case KeyState::Press:	*val = KeyState::Release; break;
+		case KeyState::Hold:	*val = KeyState::Release; break;
+		default:
+			break;
+		}
+	}
+}
+
+void RaspMouse::Update()
+{
+	IMouse::Update();
+	UpdateKey(MouseButtons::LEFT, impl_IsButtonDown(MouseButtons::LEFT));
+	UpdateKey(MouseButtons::MIDDLE, impl_IsButtonDown(MouseButtons::MIDDLE));
+	UpdateKey(MouseButtons::RIGHT, impl_IsButtonDown(MouseButtons::RIGHT));
 }

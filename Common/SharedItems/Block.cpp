@@ -1,76 +1,49 @@
+#include "World.h"
 #include "Chunk.h"
 #include "Block.h"
+#include "BlocksDatabase.h"
+#include "CompositeMesh.h"
 
-const Block* BlockData::At(const Context& ctx, GridVec vec) const
+void BlockData::DrawGridFace(const GeomContext& ctx, TextureAtlas::TextureID textureid) const
 {
-	glm::ivec3 v = GridVecToVec3(vec);
-	return ctx.chunk->At(ctx.pos + v);
+	ctx.mesh->AddBlockFace(ctx, textureid);
 }
 
-Block::ID BlockData::IDAt(const Context& ctx, GridVec vec) const
+bool BlockData::IsAir(Block::ID id)
 {
-	glm::ivec3 v = GridVecToVec3(vec);
-	const Block* block = ctx.chunk->At(ctx.pos + v);
-	if (block) return block->m_data->id;
-	return Block::ID::INVALID;
+	return id == Block::ID::Air;
+}
+bool BlockData::IsValid(Block::ID id)
+{
+	return id != Block::ID::INVALID;
+}
+bool BlockData::IsSolid(Block::ID id)
+{
+	return BlocksDatabase::Get(id)->IsSolid();
 }
 
-void BlockData::Draw(const Context& ctx, TextureAtlas::TextureID textureid) const
+bool BlockData::IsTransparent(Block::ID id)
 {
-	const Block* b = At(ctx, ctx.vec);
-	if (b && b->IsSolid()) return;
-
-	switch (ctx.vec)
-	{
-	case GridVec::Right:
-		ctx.chunk->AddRight(ctx.pos, textureid);
-		break;
-	case GridVec::Left:
-		ctx.chunk->AddLeft(ctx.pos, textureid);
-		break;
-	case GridVec::Top:
-		ctx.chunk->AddTop(ctx.pos, textureid);
-		break;
-	case GridVec::Bottom:
-		//ctx.chunk->AddBottom(ctx.pos, textureid);
-		break;
-	case GridVec::Front:
-		ctx.chunk->AddFront(ctx.pos, textureid);
-		break;
-	case GridVec::Back:
-		ctx.chunk->AddBack(ctx.pos, textureid);
-		break;
-	default:
-		break;
-	}
+	return BlocksDatabase::Get(id)->IsTransparent();
 }
 
-void BlockData::GenerateGeometry(const Context& ctx)
+bool BlockData::IsLightSource(Block::ID id)
+{
+	return BlocksDatabase::Get(id)->IsLightSource();
+}
+
+void BlockData::GenerateGeometry(const GeomContext& ctx)
 {
 	generateGeometry(*this, ctx);
 }
 
-Block::Block(BlockData* data) : m_data(data)
+BlockData* Block::GetData() const
 {
-
+	return BlocksDatabase::Get(m_id);
 }
 
-bool Block::IsSolid() const
+void Block::Set(Block::ID id)
 {
-	return m_data->isSolid;
-}
-
-bool Block::IsAir() const
-{
-	return m_data->id == ID::Air;
-}
-
-bool Block::IsValid() const
-{
-	return m_data->id != ID::INVALID;
-}
-
-void Block::Set(BlockData* data)
-{
-	m_data = data;
+	m_id = id;
+	m_light = BlocksDatabase::Get(id)->emission;
 }

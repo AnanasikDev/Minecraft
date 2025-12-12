@@ -16,6 +16,7 @@ public:
 
 	Renderer() = default;
 	~Renderer() = default;
+
 	template <typename Vertex>
 	void Push(RenderRequest<Vertex> request);
 };

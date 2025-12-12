@@ -83,6 +83,7 @@
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\ImGui-master\backends\imgui_impl_x11.cpp" />
     <ClCompile Include="..\Raspberry\RaspGraphics.cpp" />
     <ClCompile Include="..\Raspberry\RaspKeyboard.cpp" />
     <ClCompile Include="..\Raspberry\RaspMouse.cpp" />
@@ -90,6 +91,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\FastNoiseLite\FastNoiseLite.h" />
+    <ClInclude Include="..\Common\ImGui-master\backends\imgui_impl_x11.h" />
     <ClInclude Include="..\Raspberry\EGLState.h" />
     <ClInclude Include="..\Raspberry\RaspGraphics.h" />
     <ClInclude Include="..\Raspberry\RaspKeyboard.h" />

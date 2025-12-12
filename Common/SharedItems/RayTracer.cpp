@@ -10,7 +10,7 @@ std::optional<glm::ivec3> RayTracer::GetFirstBlock(const Chunk* const chunk, Ray
 	{
 		check += direction * TRACER_STEP;
 		glm::ivec3 gridCheck(roundf(check.x), roundf(check.y), roundf(check.z));
-		if (chunk->At(gridCheck)->IsSolid())
+		if (BlockData::IsSolid(chunk->At(gridCheck)->m_data->id))
 		{
 			return gridCheck;
 		}

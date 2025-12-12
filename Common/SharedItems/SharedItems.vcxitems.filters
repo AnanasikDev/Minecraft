@@ -28,6 +28,9 @@
     <Filter Include="Graphics\high">
       <UniqueIdentifier>{d8d1b7c0-5498-4b27-b921-0a74c0dccd92}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Structures">
+      <UniqueIdentifier>{7d174ef7-41ec-4901-87bc-ad30292042b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IInput.h">
@@ -48,9 +51,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Chunk.h">
       <Filter>Game\World</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)PlayerInput.h">
-      <Filter>Input</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\Input.h">
       <Filter>Input</Filter>
     </ClInclude>
@@ -67,9 +67,6 @@
       <Filter>Game\World</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)World.h">
-      <Filter>Game\World</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RayTracer.h">
       <Filter>Game\World</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)IPoolable.h">
@@ -141,6 +138,70 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)SafeQueue.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Ray.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)amath.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imconfig.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_rectpack.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_textedit.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_truetype.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\backends\imgui_impl_opengl3.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\backends\imgui_impl_opengl3_loader.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)StructureGenerator.h">
+      <Filter>Game\Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)StructureData.h">
+      <Filter>Game\Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RendererHelper.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_internal.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)OpenGLDebug.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)BlockCompositeMesh.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ChunkCompositeMesh.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CompositeMesh.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Face.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)GeomContext.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)BaseDebug.h">
+      <Filter>Graphics\low</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorldGen.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RemeshRequest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Input.cpp">
@@ -176,9 +237,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)commons.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RayTracer.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\stb_image_impl.cpp">
       <Filter>Externals</Filter>
     </ClCompile>
@@ -209,6 +267,43 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Renderer.tpp">
       <Filter>Graphics\high</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_demo.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_draw.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_tables.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\imgui_widgets.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\ImGui-master\backends\imgui_impl_opengl3.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RendererHelper.cpp">
+      <Filter>Graphics\high</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Ray.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)amath.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)OpenGLDebug.cpp">
+      <Filter>Graphics\high</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)BaseDebug.cpp">
+      <Filter>Graphics\low</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)WorldGen.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RemeshRequest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.mtl">

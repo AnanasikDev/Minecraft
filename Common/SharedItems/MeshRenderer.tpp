@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include "Mesh.h"
 #include "MeshRenderer.h"
 #include "glh.h"

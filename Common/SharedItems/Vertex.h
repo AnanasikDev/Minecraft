@@ -32,44 +32,20 @@ struct BaseVertex
 	}
 };
 
-//template <typename Txyz, typename Tcolor>
-//struct ColorVertex : public BaseVertex<Txyz>
-//{
-//	Tcolor r, g, b;
-//
-//	ModelVertex(Txyz x, Txyz y, Txyz z, Tcolor r, Tcolor g, Tcolor b) : BaseVertex<Txyz>(x, y, z), r(r), g(g), b(b)
-//	{
-//	}
-//
-//	static constexpr inline unsigned int GetStride()
-//	{
-//		return	sizeof(Txyz) * 3 +
-//				sizeof(Tcolor) * 3 +
-//	}
-//
-//	static void SetLayout(BufferLayout* layout)
-//	{
-//		layout->PushAttribute<Txyz>(3, GetStride());
-//		layout->PushAttribute<Tcolor>(3, GetStride());
-//	}
-//};
-
-template <typename Txyz, typename Tuv>
+template <typename Txyz, typename Tuv, typename Tlight>
 struct ModelVertex : public BaseVertex<Txyz>
 {
 	Tuv u, v;
 	TextureAtlas::TextureID texid;
+	Tlight m_light;
 
-	ModelVertex(Txyz x, Txyz y, Txyz z, Tuv u, Tuv v, TextureAtlas::TextureID texid) : BaseVertex<Txyz>(x, y, z), u(u), v(v), texid(texid)
+	ModelVertex(Txyz x, Txyz y, Txyz z, Tuv u, Tuv v, TextureAtlas::TextureID texid, Tlight m_light) : BaseVertex<Txyz>(x, y, z), u(u), v(v), texid(texid), m_light(m_light)
 	{
 	}
 
 	static constexpr inline unsigned int GetStride()
 	{
-		//return	sizeof(Txyz) * 3 +
-		//		sizeof(Tuv) * 2 +
-		//		sizeof(TextureAtlas::TextureID);
-		return sizeof(ModelVertex<Txyz, Tuv>);
+		return sizeof(ModelVertex<Txyz, Tuv, Tlight>);
 	}
 
 	static void SetLayout(BufferLayout* layout)
@@ -77,8 +53,9 @@ struct ModelVertex : public BaseVertex<Txyz>
 		layout->PushAttribute<Txyz>(3, GetStride());
 		layout->PushAttribute<Tuv>(2, GetStride());
 		layout->PushAttribute<int>(1, GetStride());
+		layout->PushAttribute<int>(1, GetStride());
 	}
 };
 
-using FVertex = ModelVertex<float, float>;
+using FVertex = ModelVertex<float, float, int>;
 using DebugVertex = BaseVertex<float>;

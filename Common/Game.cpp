@@ -1,6 +1,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "ImGui-master/imgui.h"
 
 #include "Random.h"
 
@@ -21,13 +22,18 @@
 #include "Chunk.h"
 #include "Renderer.h"
 #include "Block.h"
+#include "VertexBuffer.h"
+#include "RendererHelper.h"
+#include "BaseDebug.h"
+#include "OpenGLDebug.h"
 
-Game::Game(const Input* const input, IGraphics* graphics) :
+Game::Game(Input* const input, IGraphics* graphics) :
 	input(input),
 	graphics(graphics)
 {
 	m_renderer = std::make_unique<Renderer>();
 	m_renderer->m_game = this;
+	m_debug = std::make_unique<OpenGLDebug>();
 }
 
 Game::~Game()
@@ -64,75 +70,35 @@ void Game::Start()
 	auto startTime = std::chrono::system_clock::now();
 	auto lastTime = startTime;
 
-	float averageFPS{ 0 };
-	
-
 	atlas.BindAtlas("../Common/Assets/Textures/atlas.png", GL_REPEAT);
 
-	const IMouse& mouse = GetInput().GetMouse();
+	IMouse& mouse = GetInput().GetMouse();
 	mouse.Init();
+	
+	RendererHelper rendererHelper;
+	rendererHelper.Init();
+
+	BlocksDatabase::Init();
+
+	m_world = std::make_unique<World>();
+	m_world->SetGenerator(std::make_unique<WorldGen>(m_world.get()));
+	m_world->Init(this);
 
 	m_player = std::make_unique<Player>(this);
 
-	blocks = new BlocksDatabase();
-	blocks->Init();
-
-	m_world = std::make_unique<World>();
-	m_world->Init(this);
-
-	static float vertices[8 * 3] = {
-			0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f,
-			1.0f, 1.0f, 0.0f,
-			1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f,
-			0.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f,
-			1.0f, 0.0f, 1.0f,
-	};
-	/*static unsigned int indices[12 * 2] = {
-		0, 1,
-		1, 2,
-		2, 3,
-		3, 0,
-		4, 5,
-		5, 6,
-		6, 7,
-		7, 4,
-		0, 4,
-		1, 5,
-		2, 6,
-		3, 7
-	};*/
-
-	/*static unsigned int indices[4] = {
-		0, 1, 2, 3
-	};
-
-	Mesh<DebugVertex>::MESH_BOX.AddVertices(reinterpret_cast<DebugVertex*>(vertices), 8 * 3);
-	Mesh<DebugVertex>::MESH_BOX.AddIndices(indices, 4);
-
-	MeshRenderer<DebugVertex> meshRenderer;
-	meshRenderer.UseMesh(&Mesh<DebugVertex>::MESH_BOX);
-	meshRenderer.UseRendererSystem(m_renderer.get());
-	meshRenderer.UpdateBuffers();
-	meshRenderer.m_mode = RENDER_MODE::LINE_MODE;
-	meshRenderer.m_transform.Scale(glm::vec3(16, 20, 16));*/
-
-	/*int x = 7;
-	int z = -16;
-	m_player->m_transform.Translate(glm::ivec3(x * 16, 0, z * 16));
-	m_world->Regenerate(glm::ivec3(x, 0, z));
-	m_world->Regenerate(glm::ivec3(x + 1, 0, z));*/
+	graphics->InitGUI();
 
 	while(!quitting)
 	{
+		graphics->BeginFrame();
+
 		ProcessInput();
 		if (input->GetKeyboard().IsKeyPressed(Key::ESCAPE))
 		{
 			graphics->Quit();
 			return;
 		}
+
 		auto time = std::chrono::system_clock::now();
 		std::chrono::duration<float> delta = time - lastTime;
 
@@ -141,11 +107,12 @@ void Game::Start()
 		std::chrono::duration<float> elapsed = time - startTime;
 		if(elapsed.count() > 0.25f && frameCount > 10)
 		{
-			averageFPS = static_cast<float>(frameCount) / elapsed.count();
+			m_averageFPS = static_cast<float>(frameCount) / elapsed.count();
 			startTime = time;
 			frameCount = 0;
 			//printf("%f\n", averageFPS);
 		}
+		
 		if (input->GetKeyboard().IsKeyPressed(Key::TAB))
 		{
 			if (m_renderer->m_mode == RENDER_MODE::SOLID_MODE)
@@ -158,69 +125,50 @@ void Game::Start()
 			}
 		}
 
-		// Setup the viewport
+		if (input->GetKeyboard().IsKeyPressed(Key::C))
+		{
+			if (graphics->IsCursorLocked()) graphics->UnlockCursor();
+			else graphics->LockCursor();
+			GetInput().GetMouse().Init();
+		}
+
+		if (input->GetKeyboard().IsKeyPressed(Key::T))
+		{
+			m_displaySettings = !m_displaySettings;
+		}
+
 		ClearScreen();
 		glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-		//trans.Rotate(0.1f, glm::vec3(0.0f, 1.0f, 0.0));
-
-		//Update and Draw your game here
-		//Don't forget to use gameDeltaTime for smooth movement
-
-		//if (GetInput().GetKeyboard().IsKeyPressed(Key::H))
-		//{
-		//	m_world->Regenerate(glm::ivec3(x, 0, z));
-		//}
-		//if (GetInput().GetKeyboard().IsKeyPressed(Key::J))
-		//{
-		//	//m_world->Regenerate(glm::ivec3(6, 0, -17));
-		//	//m_world->Regenerate(glm::ivec3(6, 0, -15));
-		//	//m_world->Regenerate(glm::ivec3(5, 0, -16));
-		//	m_world->Regenerate(glm::ivec3(x + 1, 0, z));
-		//}
-		//if (GetInput().GetKeyboard().IsKeyPressed(Key::K))
-		//{
-		//	//m_world->Regenerate(glm::ivec3(6, 0, -17));
-		//	//m_world->Regenerate(glm::ivec3(6, 0, -15));
-		//	//m_world->Regenerate(glm::ivec3(5, 0, -16));
-		//	m_world->Regenerate(glm::ivec3(x + 2, 0, z));
-		//}
 
 		m_player->Update();
 		m_world->Update();
 		m_world->FixedUpdate();
 
 		m_world->Render(m_player.get());
+		m_player->Render();
+		DrawCrosshair();
+		if (m_displaySettings) DisplaySettings();
+		graphics->EndFrame();
 
-		glm::ivec3 playerChunkId = m_player->m_transform.GetChunkPosition();
-		Chunk* chunk = m_world->GetChunkAt(playerChunkId);
-		if (chunk)
-		{
-			glm::ivec3 world = m_player->m_transform.GetBlockPosition();
-			glm::ivec3 local = chunk->WorldToLocal(world);
-			int height = m_world->GetHeightAt(world);
-			Block::ID expectedblockid = m_world->GetBlockIDAt(world);
-			if (local.y >= Chunk::YHEIGHT) local.y = Chunk::YHEIGHT - 1;
-			Block::ID realblockid = chunk->At(local)->m_data->id;
-			//printf("chunk: %02d %02d  local: %02d %02d %02d  world: %02d %02d %02d | expected block: %d  real block: %d\n", playerChunkId.x, playerChunkId.z, local.x, local.y, local.z, world.x, world.y, world.z, expectedblockid, realblockid);
-		}
-		//meshRenderer.Render(m_player->m_camera.get());
-
-		/*meshRenderer.m_transform.Rotate(10, glm::vec3(0.5f, 0.5f, 0.0));
-		meshRenderer.Render(m_player->m_camera.get());*/
-
-		//glFlush();
 		GetInput().GetKeyboard().Update();
+		GetInput().GetMouse().Flush();
 		graphics->SwapBuffer();
 
 		lastTime = time;
 		++frameCount;
+		m_fpsDeque.push_back(1.0f / gameDeltaTime);
+		if (m_fpsDeque.size() == COLLECT_FPS_DATA_FRAMES)
+		{
+			m_fpsDeque.pop_front();
+		}
+
+		VertexBuffer<FVertex>::NUM_RENDERED = 0;
 	}
 
 	graphics->Quit();
 }
 
-const Input& Game::GetInput() const
+Input& Game::GetInput()
 {
 	return *input;
 }
@@ -230,21 +178,88 @@ void Game::Quit()
 	quitting = true;
 }
 
-
-//example of using the key and mouse
 void Game::ProcessInput()
 {
-	const Input& input = GetInput();
-	const IMouse& mouse = GetInput().GetMouse();
+	Input& input = GetInput();
+	IMouse& mouse = GetInput().GetMouse();
 
 	mouse.Update();
 }
 
+void Game::DrawCrosshair()
+{
+	ImU32 color{ IM_COL32(255, 255, 255, 255) };
+	ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	draw_list->AddLine(ImVec2(center.x - 10, center.y), ImVec2(center.x + 10, center.y), color, 2.0f);
+	draw_list->AddLine(ImVec2(center.x, center.y - 10), ImVec2(center.x, center.y + 10), color, 2.0f);
+}
 
+void Game::DisplaySettings()
+{
+	ImGui::PushItemWidth(160);
+	glm::vec3 playerPos = m_player->m_transform.GetWorldPosition();
+	ImGui::SeparatorText("Graphics");
+	ImGui::DragFloat("FPS", &m_averageFPS, 0.0f, 0.0f, 0.0f, "%.1f", ImGuiSliderFlags_NoInput);
+	std::vector<float> values;
+	for (std::deque<float>::iterator it = m_fpsDeque.begin(); it != m_fpsDeque.end(); ++it)
+	{
+		values.push_back(*it);
+	}
+	ImVec2 size(10, 20);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, size);
+	ImGui::PlotLines("Graph", values.data(), values.size(), 0, "avg", 0.0f, 120.0f);
+	ImGui::SameLine();
+	ImGui::PushItemWidth(30);
+	if (ImGui::DragInt("Num", &COLLECT_FPS_DATA_FRAMES))
+	{
+		m_fpsDeque.clear();
+	}
+	ImGui::PopItemWidth();
+	ImGui::PopStyleVar();
+	int verts = VertexBuffer<FVertex>::NUM_RENDERED;
+	ImGui::DragInt("Vertices", &verts, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::SliderInt("Generation distance", &m_world->GENERATION_DISTANCE, 2, 32);
+	ImGui::DragInt("Chunks active", &m_world->CHUNKS_ACTIVE, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::DragInt("Chunks rendered", &m_world->CHUNKS_RENDERED, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+
+	ImGui::SeparatorText("Player");
+	ImGui::DragFloat3("Player position", &playerPos.x, 0.0f, 0.0f, 0.0f, "%.1f", ImGuiSliderFlags_NoInput);
+	glm::ivec3 playerChunkPos = World::WorldBlockToChunkGrid(m_player->m_transform.GetWorldPosition());
+	glm::ivec3 playerBlockPos = World::SnapToBlock(m_player->m_transform.GetWorldPosition());
+	ImGui::DragInt3("Player chunk position", &playerChunkPos.x, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::SliderFloat("Player speed", &m_player->m_baseMovementSpeed, 4.0f, 18.0f);
+
+	BlockGenData data = m_world->GetGenerator()->GetBlockGenDataAt(playerBlockPos);
+	float temp = data.temperature;
+	float humidity = data.humidity;
+	ImGui::SeparatorText("Worldgen");
+	ImGui::DragFloat("Temperature", &temp, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
+	ImGui::DragFloat("Humidity", &humidity, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
+	std::string biom = "Biom: " + WorldGen::GetBiomName(data.biom);
+	ImGui::Text(biom.c_str());
+
+	glm::vec3 rightHandPos = m_player->m_rightHand.m_transform.GetLocalPosition();
+	ImGui::DragFloat3("Right hand", &rightHandPos.x, 0.05f);
+	m_player->m_rightHand.m_transform.SetLocalPosition(rightHandPos);
+
+	float val = Random::GetFloat2D(playerBlockPos.x, playerBlockPos.z);
+	ImGui::DragFloat("Rand2D", &val, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
+
+	Block* block = m_world->GetBlockAtWorld(playerBlockPos);
+	int light = -1;
+	std::string name = "-";
+	if (block)
+	{
+		light = static_cast<int>(block->GetLightLevel());
+		name = BlocksDatabase::Get(block->GetID())->name;
+	}
+	ImGui::DragInt("Light", &light, 0, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::Text(name.c_str());
+}
 
 void Game::InitializeOpenGLES()
 {
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LEQUAL);

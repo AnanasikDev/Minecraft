@@ -7,7 +7,7 @@
 #include "IInput.h"
 #include <malloc.h>
 
-static KeyState keystates[IKeyboard::MAX_KEYS];
+static KeyState keyboard_keystates[IKeyboard::MAX_KEYS];
 static FILE* fKeyboard;
 
 KeyState* const RaspKeyboard::GetKeyHandleRW(Key key) const
@@ -74,7 +74,7 @@ const KeyState* const RaspKeyboard::GetKeyHandleR(Key key) const
 
 RaspKeyboard::RaspKeyboard()
 {
-	m_keystate = keystates;
+	m_keystate = keyboard_keystates;
 	FindKeyboardLocation();
 	fKeyboard = fopen(keyboardLocation.c_str(), "r");
 
@@ -94,7 +94,7 @@ KeyState RaspKeyboard::GetKeyState(Key key) const
 	return *GetKeyHandleR(key);
 }
 
-void RaspKeyboard::Update() const
+void RaspKeyboard::Update()
 {
 	ProcessKeyboard();
 }
@@ -178,7 +178,7 @@ std::string RaspKeyboard::FindActiveKeyboardEv()
 	return ev;
 }
 
-void RaspKeyboard::ProcessKeyboard() const
+void RaspKeyboard::ProcessKeyboard()
 {
 	Flush();
 

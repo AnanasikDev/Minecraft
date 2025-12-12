@@ -1,103 +1,202 @@
 #include "Transform.h"
-
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/common.hpp"
+#include <glm/gtx/matrix_decompose.hpp>
 #include <algorithm>
-#include "Chunk.h"
+
+Transform::Transform() {}
 
 Transform::~Transform()
 {
-	AttachTo(nullptr);
+    for (auto child : m_children)
+    {
+        child->m_parent = nullptr;
+        child->MarkDirty();
+    }
+    if (m_parent)
+    {
+        std::vector<Transform*>& pChildren = m_parent->m_children;
+        pChildren.erase(std::remove(pChildren.begin(), pChildren.end(), this), pChildren.end());
+    }
 }
 
-void Transform::Translate(glm::vec3 delta)
+void Transform::DecomposeWorldMatrix(glm::vec3& scale, glm::quat& rotation, glm::vec3& position) const
 {
-	m_position += delta;
-	if (m_children.size() > 0)
-	{
-		std::vector<Transform*>::iterator it;
-		for (it = m_children.begin(); it != m_children.end(); ++it)
-		{
-			(*it)->Translate(delta);
-		}
-	}
+    const glm::mat4& worldMatrix = (const_cast<Transform*>(this))->GetWorldMatrix();
+
+    glm::vec3 skew;
+    glm::vec4 perspective;
+
+    glm::decompose(worldMatrix, scale, rotation, position, skew, perspective);
 }
 
-void Transform::Warp(glm::vec3 target)
+void Transform::SetParent(Transform* parent)
 {
-	Translate(target - m_position);
+    if (m_parent)
+    {
+        std::vector<Transform*>& pChildren = m_parent->m_children;
+        pChildren.erase(std::remove(pChildren.begin(), pChildren.end(), this), pChildren.end());
+    }
+
+    m_parent = parent;
+
+    if (m_parent)
+    {
+        m_parent->m_children.push_back(this);
+    }
+
+    MarkDirty();
+}
+
+void Transform::MarkDirty()
+{
+    if (m_isWorldDirty) return;
+
+    m_isWorldDirty = true;
+
+    for (auto child : m_children)
+    {
+        child->MarkDirty();
+    }
+}
+
+void Transform::SetLocalPosition(const glm::vec3& pos)
+{
+    m_localPosition = pos;
+    m_isLocalDirty = true;
+    MarkDirty();          
+}
+
+void Transform::SetLocalRotation(const glm::quat& rot)
+{
+    m_localRotation = rot;
+    m_isLocalDirty = true;
+    MarkDirty();
+}
+
+void Transform::SetLocalScale(const glm::vec3& scale)
+{
+    m_localScale = scale;
+    m_isLocalDirty = true;
+    MarkDirty();
+}
+
+void Transform::ScaleLocal(const glm::vec3& factor)
+{
+    SetLocalScale(m_localScale * factor);
+}
+
+void Transform::Translate(const glm::vec3& delta)
+{
+    SetLocalPosition(m_localPosition + delta);
+}
+
+void Transform::Rotate(const glm::quat& delta)
+{
+    SetLocalRotation(delta * m_localRotation);
 }
 
 void Transform::Rotate(float degrees, glm::vec3 axis)
 {
-	glm::mat4 mat(1.0f);
-	const float radians = glm::radians(degrees);
-	mat = glm::rotate(mat, radians, axis);
-	m_forward	= mat * glm::vec4(m_forward, 0.0f);
-	m_right		= mat * glm::vec4(m_right, 0.0f);
-	m_up		= mat * glm::vec4(m_up, 0.0f);
-	glm::quat delta = glm::angleAxis(radians, axis);
-	m_quat = delta * m_quat;
-
-	if (m_children.size() > 0)
-	{
-		std::vector<Transform*>::iterator it;
-		for (it = m_children.begin(); it != m_children.end(); ++it)
-		{
-			(*it)->Rotate(degrees, axis);
-		}
-	}
-
-	// TODO: relative rotations for children
+    SetLocalRotation(m_localRotation * glm::angleAxis(glm::radians(degrees), glm::normalize(axis)));
 }
 
-void Transform::Scale(glm::vec3 scale)
+const glm::mat4& Transform::GetLocalMatrix() const
 {
-	m_scale *= scale;
-	// TODO: relative scale for children
+    if (m_isLocalDirty)
+    {
+        glm::mat4 t = glm::translate(glm::mat4(1.0f), m_localPosition);
+        glm::mat4 r = glm::toMat4(m_localRotation);
+        glm::mat4 s = glm::scale(glm::mat4(1.0f), m_localScale);
+        
+        m_localMatrix = t * r * s;
+        m_isLocalDirty = false;
+    }
+    return m_localMatrix;
 }
 
-void Transform::AttachTo(Transform* parent)
+const glm::mat4& Transform::GetWorldMatrix() const
 {
-	if (m_parent)
-	{
-		m_parent->m_children.erase(std::find(m_parent->m_children.begin(), m_parent->m_children.end(), this));
-		m_parent = nullptr;
-	}
-
-	m_parent = parent;
-	if (parent == nullptr)
-	{
-		return;
-	}
-
-	parent->m_children.push_back(this);
+    if (m_isWorldDirty)
+    {
+        if (m_parent)
+        {
+            m_worldMatrix = m_parent->GetWorldMatrix() * GetLocalMatrix();
+        }
+        else
+        {
+            m_worldMatrix = GetLocalMatrix();
+        }
+        m_isWorldDirty = false;
+    }
+    return m_worldMatrix;
 }
 
-glm::mat4 Transform::GetModelMatrix() const
+glm::vec3 Transform::GetLocalPosition() const
 {
-	glm::mat4 mat(1.0f);
-	mat = glm::scale(mat, m_scale);
-	glm::mat4 rot = glm::toMat4(m_quat);
-	mat = rot * mat;
-	mat = glm::translate(mat, m_position);
-	return mat;
+    return m_localPosition;
 }
 
-glm::ivec3 Transform::GetChunkPosition() const
+glm::quat Transform::GetLocalRotation() const
 {
-	return glm::ivec3(
-		static_cast<int>(floorf(m_position.x / Chunk::XWIDTH)),
-		0,
-		static_cast<int>(floorf(m_position.z / Chunk::ZDEPTH))
-	);
+    return m_localRotation;
 }
 
-glm::ivec3 Transform::GetBlockPosition() const
+glm::vec3 Transform::GetLocalScale() const
 {
-	return glm::ivec3(
-		static_cast<int>(floorf(m_position.x)),
-		static_cast<int>(floorf(m_position.y)),
-		static_cast<int>(floorf(m_position.z))
-	);
+    return m_localScale;
+}
+
+glm::vec3 Transform::GetWorldPosition() const
+{
+    return GetWorldMatrix()[3];
+}
+
+glm::quat Transform::GetWorldRotation() const
+{
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 position;
+    DecomposeWorldMatrix(scale, rotation, position);
+    return rotation;
+}
+
+glm::vec3 Transform::GetWorldScale() const
+{
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 position;
+    DecomposeWorldMatrix(scale, rotation, position);
+    return scale;
+}
+
+glm::vec3 Transform::GetLocalForward() const
+{
+    return glm::rotate(m_localRotation, glm::vec3(0.0f, 0.0f, -1.0f));
+}
+
+glm::vec3 Transform::GetLocalRight() const
+{
+    return glm::rotate(m_localRotation, glm::vec3(-1.0f, 0.0f, 0.0f));
+}
+
+glm::vec3 Transform::GetLocalUp() const
+{
+    return glm::rotate(m_localRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+glm::vec3 Transform::GetWorldForward() const
+{
+    glm::quat worldRotation = GetWorldRotation();
+    return glm::rotate(worldRotation, glm::vec3(0.0f, 0.0f, -1.0f));
+}
+
+glm::vec3 Transform::GetWorldRight() const
+{
+    glm::quat worldRotation = GetWorldRotation();
+    return glm::rotate(worldRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+}
+
+glm::vec3 Transform::GetWorldUp() const
+{
+    glm::quat worldRotation = GetWorldRotation();
+    return glm::rotate(worldRotation, glm::vec3(0.0f, 1.0f, 0.0f));
 }
