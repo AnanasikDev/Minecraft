@@ -14,6 +14,7 @@
 #include "SafeQueue.h"
 #include "Ray.h"
 #include "WorldGen.h"
+#include "LightManager.h"
 
 class Game;
 class Player;
@@ -27,10 +28,13 @@ public:
 	int CHUNKS_RENDERED{ 0 };
 	int CHUNKS_ACTIVE{ 0 };
 
+	LightManager m_lightManager;
+
 	World();
 	~World();
 	
 	void AsyncUpdate();
+	void GenerateChunk(RemeshRequest& request);
 	void MeshChunk(RemeshRequest& request);
 	bool ShouldGenerate(glm::ivec3 chunkPos, glm::ivec3 playerChunkPos);
 
@@ -44,15 +48,15 @@ public:
 	Block* GetBlockAtWorld(glm::ivec3 pos);
 	Chunk* GetChunkAt(glm::ivec3 pos);
 	void GenerateChunkAt(glm::ivec3 chunkPos);
+	RemeshRequest MakeRequest(Chunk* chunk);
 	void Regenerate(Chunk* chunk);
+	void InitGenerate(Chunk* chunk);
 	void GenerateChunkGrid(RemeshRequest& request);
-
-	void UpdateLightBlock(glm::ivec3 worldpos, char intensity);
 
 	RaycastResult Raycast(Ray ray);
 	RaycastResult SimpleRaycast(Ray ray, float step, bool invert);
 
-	std::vector<Chunk*> GetNeighbours(Chunk* chunk);
+	std::vector<Chunk*> GetNeighbours(Chunk* chunk, bool includeSelf = false, bool includeCorners = false);
 
 	static inline constexpr glm::ivec3 SnapToBlock(glm::vec3 pos)
 	{
@@ -105,10 +109,60 @@ public:
 	WorldGen* GetGenerator() const;
 	void SetGenerator(std::unique_ptr<WorldGen> worldgen);
 
+	static constexpr glm::ivec3 closeXYZNeighbours[6]{
+			glm::ivec3(0, 0, 1),
+			glm::ivec3(0, 0, -1),
+			glm::ivec3(1, 0, 0),
+			glm::ivec3(-1, 0, 0),
+			glm::ivec3(0, 1, 0),
+			glm::ivec3(0, -1, 0),
+	};
+
+	static constexpr glm::ivec3 allXYZNeighbours[26]{
+		// edges
+		glm::ivec3(0, 0, 1),
+		glm::ivec3(0, 0, -1),
+		glm::ivec3(1, 0, 0),
+		glm::ivec3(-1, 0, 0),
+		glm::ivec3(0, 1, 0),
+		glm::ivec3(0, -1, 0),
+		// corners
+		glm::ivec3(1, 1, 1),
+		glm::ivec3(1, 1, -1),
+		glm::ivec3(1, -1, -1),
+		glm::ivec3(1, -1, 1),
+		glm::ivec3(-1, 1, -1),
+		glm::ivec3(-1, 1, 1),
+		glm::ivec3(-1, -1, -1),
+		glm::ivec3(-1, -1, 1),
+	};
+
+	static constexpr glm::ivec3 closeXZNeighbours[4]{
+			glm::ivec3(0, 0, 1),
+			glm::ivec3(0, 0, -1),
+			glm::ivec3(1, 0, 0),
+			glm::ivec3(-1, 0, 0),
+	};
+
+	static constexpr glm::ivec3 allXZNeighbours[8]{
+			glm::ivec3( 0, 0,  1),
+			glm::ivec3( 0, 0, -1),
+			glm::ivec3( 1, 0,  0),
+			glm::ivec3(-1, 0,  0),
+
+			glm::ivec3( 1, 0,  1),
+			glm::ivec3( 1, 0, -1),
+			glm::ivec3(-1, 0,  1),
+			glm::ivec3(-1, 0, -1),
+	};
+
+	friend class LightManager;
+
 private:
 	std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunks;
 	std::mutex m_chunksMutex;
 	std::atomic<bool> m_isRunning;
+	SafeQueue<RemeshRequest> m_toGenerateQueue;
 	SafeQueue<RemeshRequest> m_toMeshQueue;
 	SafeQueue<Chunk*> m_toUpdateGPUBuffersQueue;
 	std::vector<std::thread> m_workerThreads;

@@ -15,7 +15,7 @@ struct Frustum
 
 	Frustum() = default;
 	Frustum(float fov, glm::vec2 screen, float near, float far);
-	int ContainsAaBox(const AABB& refBox) const;
+	int ContainsAaBox(const AABB2D& refBox) const;
 };
 
 class Camera : public Gameobject
@@ -32,5 +32,5 @@ public:
 	Frustum& GetFrustum();
 	glm::mat4 GetView() const;
 	glm::mat4 GetProjection() const;
-	bool IsInFrustum(glm::vec3 pos, bool includeVertical) const;
+	bool IsInFrustum(glm::vec3 pos, bool includeVertical, glm::vec3 offset = glm::vec3(0)) const;
 };

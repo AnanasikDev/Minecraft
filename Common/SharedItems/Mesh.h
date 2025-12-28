@@ -26,9 +26,6 @@ struct MeshBase
 
 	void CopyFrom(const MeshBase& other)
 	{
-		//m_vertices = other.m_vertices;
-		//m_indices = other.m_indices;
-
 		m_vertices.insert(m_vertices.end(), other.m_vertices.begin(), other.m_vertices.end());
 		m_indices.insert(m_indices.end(), other.m_indices.begin(), other.m_indices.end());
 	}

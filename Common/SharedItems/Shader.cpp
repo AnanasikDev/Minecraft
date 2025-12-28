@@ -67,9 +67,13 @@ bool Shader::LoadFromFile(const std::string& path)
 		m_source.resize(length);
 		stream.seekg(0);
 		stream.read((char*)m_source.data(), length);
+		printf("Successfully loaded shader at %s", path.c_str());
+		std::string srcpreview = m_source;
+		if (srcpreview.size() > PREVIEW_LENGTH) srcpreview[PREVIEW_LENGTH] = '\0';
+		printf(" | preview: %s\n", srcpreview.c_str());
 		return LoadFromString(m_source);
 	}
-	printf("Failed to load shader\n");
+	printf("Failed to load shader at %s\n", path.c_str());
 	return false;
 }
 
@@ -94,17 +98,11 @@ bool Shader::Compile()
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 		const bool isLong = length >= 512;
 		char* message = nullptr;
-		/*if (!isLong)
-			message = (char*)_malloca(length * sizeof(char));
-		else
-			*/message = (char*)malloc(length * sizeof(char));
-
+		message = (char*)malloc(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);
-		std::cout <<
-			"ERROR: " << GetName() << " SHADER COMPILATION FAILED\n" << message << std::endl;
+		std::cout << "ERROR: " << GetName() << " SHADER COMPILATION FAILED\n" << message << std::endl;
 		glDeleteShader(id);
-		//if (isLong)
-			free(message);
+		free(message);
 		return false;
 	}
 	return true;

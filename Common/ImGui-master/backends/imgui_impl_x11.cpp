@@ -9,12 +9,12 @@
 #include <cstring>
 
 struct ImGui_ImplX11_Data {
-    Display *Display;
-    Window          Window;
-    unsigned long   Time;
-    Cursor          MouseCursors[ImGuiMouseCursor_COUNT];
-    bool            MouseButtonsDown[5];
-    ImGuiMouseCursor LastMouseCursor;
+    Display *m_Display;
+    Window          m_Window;
+    unsigned long   m_Time;
+    Cursor          m_MouseCursors[ImGuiMouseCursor_COUNT];
+    bool            m_MouseButtonsDown[5];
+    ImGuiMouseCursor m_LastMouseCursor;
 
     ImGui_ImplX11_Data() { memset(this, 0, sizeof(*this)); }
 };
@@ -145,13 +145,13 @@ static void ImGui_ImplX11_UpdateMouseCursor() {
     ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
     if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
     {
-        XDefineCursor(bd->Display, bd->Window, None);
+        XDefineCursor(bd->m_Display, bd->m_Window, None);
     } else
     {
-        Cursor cursor = bd->MouseCursors[imgui_cursor] ? bd->MouseCursors[imgui_cursor] : bd->MouseCursors[ImGuiMouseCursor_Arrow];
-        XDefineCursor(bd->Display, bd->Window, cursor);
+        Cursor cursor = bd->m_MouseCursors[imgui_cursor] ? bd->m_MouseCursors[imgui_cursor] : bd->m_MouseCursors[ImGuiMouseCursor_Arrow];
+        XDefineCursor(bd->m_Display, bd->m_Window, cursor);
     }
-    bd->LastMouseCursor = imgui_cursor;
+    bd->m_LastMouseCursor = imgui_cursor;
 }
 
 bool ImGui_ImplX11_Init(Display *display, Window window) {
@@ -163,19 +163,19 @@ bool ImGui_ImplX11_Init(Display *display, Window window) {
     io.BackendPlatformName = "imgui_impl_x11";
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 
-    bd->Display = display;
-    bd->Window = window;
+    bd->m_Display = display;
+    bd->m_Window = window;
 
     // Create mouse cursors
-    bd->MouseCursors[ImGuiMouseCursor_Arrow] = XCreateFontCursor(display, XC_left_ptr);
-    bd->MouseCursors[ImGuiMouseCursor_TextInput] = XCreateFontCursor(display, XC_xterm);
-    bd->MouseCursors[ImGuiMouseCursor_ResizeAll] = XCreateFontCursor(display, XC_fleur);
-    bd->MouseCursors[ImGuiMouseCursor_ResizeNS] = XCreateFontCursor(display, XC_sb_v_double_arrow);
-    bd->MouseCursors[ImGuiMouseCursor_ResizeEW] = XCreateFontCursor(display, XC_sb_h_double_arrow);
-    bd->MouseCursors[ImGuiMouseCursor_ResizeNESW] = XCreateFontCursor(display, XC_top_right_corner);
-    bd->MouseCursors[ImGuiMouseCursor_ResizeNWSE] = XCreateFontCursor(display, XC_top_left_corner);
-    bd->MouseCursors[ImGuiMouseCursor_Hand] = XCreateFontCursor(display, XC_hand2);
-    bd->MouseCursors[ImGuiMouseCursor_NotAllowed] = XCreateFontCursor(display, XC_circle);
+    bd->m_MouseCursors[ImGuiMouseCursor_Arrow] = XCreateFontCursor(display, XC_left_ptr);
+    bd->m_MouseCursors[ImGuiMouseCursor_TextInput] = XCreateFontCursor(display, XC_xterm);
+    bd->m_MouseCursors[ImGuiMouseCursor_ResizeAll] = XCreateFontCursor(display, XC_fleur);
+    bd->m_MouseCursors[ImGuiMouseCursor_ResizeNS] = XCreateFontCursor(display, XC_sb_v_double_arrow);
+    bd->m_MouseCursors[ImGuiMouseCursor_ResizeEW] = XCreateFontCursor(display, XC_sb_h_double_arrow);
+    bd->m_MouseCursors[ImGuiMouseCursor_ResizeNESW] = XCreateFontCursor(display, XC_top_right_corner);
+    bd->m_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = XCreateFontCursor(display, XC_top_left_corner);
+    bd->m_MouseCursors[ImGuiMouseCursor_Hand] = XCreateFontCursor(display, XC_hand2);
+    bd->m_MouseCursors[ImGuiMouseCursor_NotAllowed] = XCreateFontCursor(display, XC_circle);
 
     // Get initial display size
     XWindowAttributes wa;
@@ -193,8 +193,8 @@ void ImGui_ImplX11_Shutdown() {
     // Destroy cursors
     for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
     {
-        if (bd->MouseCursors[cursor_n])
-            XFreeCursor(bd->Display, bd->MouseCursors[cursor_n]);
+        if (bd->m_MouseCursors[cursor_n])
+            XFreeCursor(bd->m_Display, bd->m_MouseCursors[cursor_n]);
     }
 
     io.BackendPlatformName = nullptr;
@@ -209,15 +209,15 @@ void ImGui_ImplX11_NewFrame() {
 
     // Update display size
     XWindowAttributes wa;
-    XGetWindowAttributes(bd->Display, bd->Window, &wa);
+    XGetWindowAttributes(bd->m_Display, bd->m_Window, &wa);
     io.DisplaySize = ImVec2((float)wa.width, (float)wa.height);
 
     // Update time
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     unsigned long current_time = (unsigned long)(tv.tv_sec * 1000 + tv.tv_usec / 1000);
-    io.DeltaTime = bd->Time > 0 ? (float)(current_time - bd->Time) / 1000.0f : (1.0f / 60.0f);
-    bd->Time = current_time;
+    io.DeltaTime = bd->m_Time > 0 ? (float)(current_time - bd->m_Time) / 1000.0f : (1.0f / 60.0f);
+    bd->m_Time = current_time;
 
     // Update mouse cursor
     ImGui_ImplX11_UpdateMouseCursor();
@@ -240,7 +240,7 @@ bool ImGui_ImplX11_ProcessEvent(void *event_ptr) {
             if (button < 3)
             {
                 io.AddMouseButtonEvent(button, down);
-                bd->MouseButtonsDown[button] = down;
+                bd->m_MouseButtonsDown[button] = down;
             } else if (button == 3) // Scroll up
             {
                 if (down) io.AddMouseWheelEvent(0.0f, 1.0f);

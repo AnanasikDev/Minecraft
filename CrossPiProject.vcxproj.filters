@@ -33,6 +33,9 @@
     <ClCompile Include="Common\ImGui-master\backends\imgui_impl_glfw.cpp">
       <Filter>Libs&amp;Interfaces</Filter>
     </ClCompile>
+    <ClCompile Include="WindowsAssetManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCContent\WindowsInput.h">
@@ -43,6 +46,9 @@
     </ClInclude>
     <ClInclude Include="Common\ImGui-master\backends\imgui_impl_glfw.h">
       <Filter>Libs&amp;Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsAssetManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

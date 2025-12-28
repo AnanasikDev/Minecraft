@@ -139,9 +139,9 @@ void Player::Update()
 
 void Player::Render()
 {
-	glDepthFunc(GL_ALWAYS); // TODO: abstract away
+	m_game->m_renderer->Get()->DisableDepth();
 	m_rightHand.Render(m_camera.get());
-	glDepthFunc(GL_LEQUAL);
+	m_game->m_renderer->Get()->EnableDepth();
 }
 
 void Player::SelectBlock(Block::ID id)

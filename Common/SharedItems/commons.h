@@ -54,5 +54,8 @@ inline GridVec directions[6]{
 };
 
 glm::ivec3 GridVecToVec3(GridVec vec);
+GridVec Vec3ToGridVec(glm::ivec3 vec);
+GridVec InvertGridVec(GridVec vec);
+glm::ivec3 InvertVec3(glm::ivec3 vec);
 
 #define UnwrapGridVec(vec) vec.x, vec.y, vec.y

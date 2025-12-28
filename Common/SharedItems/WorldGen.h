@@ -17,18 +17,23 @@ enum class Biom
 
 struct BlockGenData
 {
-	float columnHeight;
-	float density;
-	float noiseBase;
-	float noiseMountains;
+	float columnHeight{ 0 };
+	float caveness{ 0 };
+	float noiseBase{ 0 };
+	float noiseMountains{ 0 };
 
-	float temperature;
-	float humidity;
-	Biom biom;
+	float temperature{ 0 };
+	float humidity{ 0 };
+	Biom biom{ Biom::Forest };
 
 	inline int GetHeight() const
 	{
 		return static_cast<int>(columnHeight);
+	}
+
+	inline bool IsCave() const
+	{
+		return caveness > 0.1f;
 	}
 };
 

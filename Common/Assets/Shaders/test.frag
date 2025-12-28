@@ -16,11 +16,6 @@ in flat int LightLevel;
 
 void main()
 {
-	int u_maxLightLevel = 20;
-	int u_minLightLevel = 4;
-	int lightLevel = LightLevel;
-	//float light = float(clamp(lightLevel, u_minLightLevel, u_maxLightLevel)) / float(u_maxLightLevel);
-	float light = float(lightLevel + u_minLightLevel) / float(u_maxLightLevel);
 	vec4 albedo = texture(u_TextureArray, vec3(TexCoord, TexID));
 	float alpha = albedo.a;
 
@@ -28,8 +23,15 @@ void main()
 	{
 		discard;
 	}
+
+	int u_maxLightLevel = 20;
+	int u_minLightLevel = 4;
+	int in_skyExposure = LightLevel & 0xF;
+	int in_blockLight = (LightLevel >> 4) & 0xF;
+	float light = float(in_blockLight + u_minLightLevel) / float(u_maxLightLevel);
+	float skylight = float(in_skyExposure + u_minLightLevel) / float(u_maxLightLevel);
 	
-	vec4 finalColor = albedo * light;
+	vec4 finalColor = albedo * max(light, skylight);
 	finalColor.a = alpha;
 
 	FragColor = finalColor;

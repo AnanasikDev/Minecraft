@@ -50,10 +50,10 @@ struct ModelVertex : public BaseVertex<Txyz>
 
 	static void SetLayout(BufferLayout* layout)
 	{
-		layout->PushAttribute<Txyz>(3, GetStride());
-		layout->PushAttribute<Tuv>(2, GetStride());
-		layout->PushAttribute<int>(1, GetStride());
-		layout->PushAttribute<int>(1, GetStride());
+		layout->PushAttribute<Txyz>(3, GetStride()); // xyz
+		layout->PushAttribute<Tuv>(2, GetStride());  // uv
+		layout->PushAttribute<int>(1, GetStride());  // texid
+		layout->PushAttribute<int>(1, GetStride());  // light
 	}
 };
 

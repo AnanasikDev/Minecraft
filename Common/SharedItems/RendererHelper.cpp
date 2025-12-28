@@ -44,10 +44,27 @@ void RendererHelper::Init()
 	Mesh<DebugVertex>::MESH_BOX.AddIndices(debugIndices, 12 * 2);
 	Mesh<DebugVertex>::MESH_BOX.AddVertices(debugVertices, 8);
 
-	VRendererHelper<FVertex>::AddFace<FVertex>(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Front, TextureAtlas::TextureID::Dirt, 15);
-	VRendererHelper<FVertex>::AddFace<FVertex>(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Back, TextureAtlas::TextureID::Dirt, 15);
-	VRendererHelper<FVertex>::AddFace<FVertex>(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Top, TextureAtlas::TextureID::Dirt, 15);
-	VRendererHelper<FVertex>::AddFace<FVertex>(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Bottom, TextureAtlas::TextureID::Dirt, 15);
-	VRendererHelper<FVertex>::AddFace<FVertex>(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Right, TextureAtlas::TextureID::Dirt, 15);
-	VRendererHelper<FVertex>::AddFace<FVertex>(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Left, TextureAtlas::TextureID::Dirt, 15);
+	VRendererHelper<FVertex>::AddFace(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Front, TextureAtlas::TextureID::Dirt, 15);
+	VRendererHelper<FVertex>::AddFace(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Back, TextureAtlas::TextureID::Dirt, 15);
+	VRendererHelper<FVertex>::AddFace(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Top, TextureAtlas::TextureID::Dirt, 15);
+	VRendererHelper<FVertex>::AddFace(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Bottom, TextureAtlas::TextureID::Dirt, 15);
+	VRendererHelper<FVertex>::AddFace(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Right, TextureAtlas::TextureID::Dirt, 15);
+	VRendererHelper<FVertex>::AddFace(Mesh<FVertex>::MESH_BOX, glm::ivec3(0, 0, 0), GridVec::Left, TextureAtlas::TextureID::Dirt, 15);
 }
+
+void RendererHelper::DisableDepth()
+{
+	glDepthFunc(GL_ALWAYS);
+}
+
+void RendererHelper::EnableDepth()
+{
+	glDepthFunc(GL_LEQUAL);
+}
+
+void RendererHelper::ClearScreen()
+{
+	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+

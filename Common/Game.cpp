@@ -26,10 +26,14 @@
 #include "RendererHelper.h"
 #include "BaseDebug.h"
 #include "OpenGLDebug.h"
+#include "AssetManager.h"
 
-Game::Game(Input* const input, IGraphics* graphics) :
+bool BaseDebug::show = false;
+
+Game::Game(Input* const input, IGraphics* graphics, Platform platform) :
 	input(input),
-	graphics(graphics)
+	graphics(graphics),
+	m_platform(platform)
 {
 	m_renderer = std::make_unique<Renderer>();
 	m_renderer->m_game = this;
@@ -53,11 +57,11 @@ void Game::Start()
 
 	program = new Program();
 	vertShader = new Shader(program, Shader::Type::Vertex);
-	vertShader->LoadFromFile("../Common/Assets/Shaders/test.vert");
+	vertShader->LoadFromFile(m_assetManager->GetAssetPathString("Shaders/test.vert"));
 	vertShader->Compile();
 
 	fragShader = new Shader(program, Shader::Type::Fragment);
-	fragShader->LoadFromFile("../Common/Assets/Shaders/test.frag");
+	fragShader->LoadFromFile(m_assetManager->GetAssetPathString("Shaders/test.frag"));
 	fragShader->Compile();
 
 	Shader* shaders[2]{ vertShader, fragShader };
@@ -70,13 +74,14 @@ void Game::Start()
 	auto startTime = std::chrono::system_clock::now();
 	auto lastTime = startTime;
 
-	atlas.BindAtlas("../Common/Assets/Textures/atlas.png", GL_REPEAT);
+	atlas.BindAtlas(m_assetManager->GetAssetPathString("Textures/atlas.png"), GL_REPEAT);
 
 	IMouse& mouse = GetInput().GetMouse();
 	mouse.Init();
 	
 	RendererHelper rendererHelper;
 	rendererHelper.Init();
+	m_renderer->m_helper = &rendererHelper;
 
 	BlocksDatabase::Init();
 
@@ -91,7 +96,6 @@ void Game::Start()
 	while(!quitting)
 	{
 		graphics->BeginFrame();
-
 		ProcessInput();
 		if (input->GetKeyboard().IsKeyPressed(Key::ESCAPE))
 		{
@@ -110,7 +114,7 @@ void Game::Start()
 			m_averageFPS = static_cast<float>(frameCount) / elapsed.count();
 			startTime = time;
 			frameCount = 0;
-			//printf("%f\n", averageFPS);
+			//printf("%f\n", m_averageFPS);
 		}
 		
 		if (input->GetKeyboard().IsKeyPressed(Key::TAB))
@@ -137,7 +141,7 @@ void Game::Start()
 			m_displaySettings = !m_displaySettings;
 		}
 
-		ClearScreen();
+		m_renderer->Get()->ClearScreen();
 		glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		m_player->Update();
@@ -222,9 +226,12 @@ void Game::DisplaySettings()
 	ImGui::SliderInt("Generation distance", &m_world->GENERATION_DISTANCE, 2, 32);
 	ImGui::DragInt("Chunks active", &m_world->CHUNKS_ACTIVE, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	ImGui::DragInt("Chunks rendered", &m_world->CHUNKS_RENDERED, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::Checkbox("Show debug", &BaseDebug::show);
 
 	ImGui::SeparatorText("Player");
-	ImGui::DragFloat3("Player position", &playerPos.x, 0.0f, 0.0f, 0.0f, "%.1f", ImGuiSliderFlags_NoInput);
+	glm::ivec3 playerLocalPos = World::WorldToLocalAny(World::SnapToBlock(m_player->m_transform.GetWorldPosition()));
+	ImGui::DragFloat3("Player world position", &playerPos.x, 0.0f, 0.0f, 0.0f, "%.1f", ImGuiSliderFlags_NoInput);
+	ImGui::DragInt3("Player local position", &playerLocalPos.x, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	glm::ivec3 playerChunkPos = World::WorldBlockToChunkGrid(m_player->m_transform.GetWorldPosition());
 	glm::ivec3 playerBlockPos = World::SnapToBlock(m_player->m_transform.GetWorldPosition());
 	ImGui::DragInt3("Player chunk position", &playerChunkPos.x, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
@@ -238,23 +245,26 @@ void Game::DisplaySettings()
 	ImGui::DragFloat("Humidity", &humidity, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
 	std::string biom = "Biom: " + WorldGen::GetBiomName(data.biom);
 	ImGui::Text(biom.c_str());
+	std::string iscave = data.IsCave() ? "Cave" : "Non-cave";
+	ImGui::Text(iscave.c_str());
+	ImGui::DragFloat("Caveness", &data.caveness, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
 
 	glm::vec3 rightHandPos = m_player->m_rightHand.m_transform.GetLocalPosition();
 	ImGui::DragFloat3("Right hand", &rightHandPos.x, 0.05f);
 	m_player->m_rightHand.m_transform.SetLocalPosition(rightHandPos);
 
-	float val = Random::GetFloat2D(playerBlockPos.x, playerBlockPos.z);
-	ImGui::DragFloat("Rand2D", &val, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
-
 	Block* block = m_world->GetBlockAtWorld(playerBlockPos);
 	int light = -1;
+	int sky = -1;
 	std::string name = "-";
 	if (block)
 	{
 		light = static_cast<int>(block->GetLightLevel());
-		name = BlocksDatabase::Get(block->GetID())->name;
+		sky = static_cast<int>(block->GetSkyExposure());
+		name = BlocksDatabase::Get(block->GetID())->m_name;
 	}
 	ImGui::DragInt("Light", &light, 0, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::DragInt("Sky exposure", &sky, 0, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	ImGui::Text(name.c_str());
 }
 
@@ -275,10 +285,4 @@ void Game::InitializeOpenGLES()
 	glFrontFace(GL_CCW);
 
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-}
-
-void Game::ClearScreen()
-{
-	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

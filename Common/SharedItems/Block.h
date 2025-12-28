@@ -28,13 +28,17 @@ struct Block
 		INVALID = 255
 	};
 
-	Block::ID m_id;
-	char m_light;
+	Block::ID m_id{	Block::ID::Air };
+	unsigned char m_light : 4;
+	unsigned char m_skyExposure : 4;
 
-	Block() : m_id(ID::Air), m_light(0)
+	Block() : m_id(ID::Air), m_light(0), m_skyExposure(0)
 	{
 	}
-	Block(Block::ID id) : m_id(id), m_light(0)
+	Block(Block::ID id) : m_id(id), m_light(0), m_skyExposure(0)
+	{
+	}
+	Block(Block::ID id, unsigned char light) : m_id(id), m_light(light), m_skyExposure(0)
 	{
 	}
 
@@ -46,21 +50,39 @@ struct Block
 	struct BlockData* GetData() const;
 
 
-	void Set(Block::ID id);
+	void Set(Block::ID id, bool updateLight = true);
 
-	inline char GetLightLevel() const
+	inline unsigned char GetLightLevel() const
 	{
 		return m_light;
 	}
 	
-	void SetLightLevel(char light)
+	inline void SetLightLevel(unsigned char light)
 	{
 		m_light = light;
 	}
 
-	static inline char GetLightLevelSafe(const Block* block)
+	unsigned char GetEmission() const;
+	bool IsLightEmitter() const;
+
+	static inline unsigned char GetLightLevelSafe(const Block* block)
 	{
 		if (!block) return 15;
 		return block->GetLightLevel();
+	}
+
+	inline void SetSkyExposure(unsigned char newval)
+	{
+		m_skyExposure = newval;
+	}
+
+	inline unsigned char GetSkyExposure() const
+	{
+		return m_skyExposure;
+	}
+
+	inline unsigned char GetTotalLightPacked() const
+	{
+		return (std::max(m_light, GetEmission()) << 4) | (m_skyExposure & 0xf);
 	}
 };

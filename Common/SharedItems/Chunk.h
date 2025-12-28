@@ -5,6 +5,7 @@
 #include <array>
 #include <atomic>
 #include <mutex>
+#include <functional>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
@@ -16,6 +17,7 @@
 #include "BlocksDatabase.h"
 #include "commons.h"
 #include "StructureData.h"
+#include "LightSource.h"
 
 class Camera;
 class Game;
@@ -35,7 +37,7 @@ public:
 	static constexpr int GROUND_HEIGHT{ 60 };
 
 	int m_id{ 0 };
-	std::atomic<bool> m_isDirty{ true };
+	std::atomic<bool> m_isDirty{ false };
 	std::atomic<bool> m_isReadyForRender{ false };
 	glm::ivec3 m_position{ 0,0,0 };
 	std::atomic<bool> m_isGenerating{ false };
@@ -51,7 +53,7 @@ public:
 	const Block* AtForce(glm::ivec3 pos) const;
 	Block* AtGlobal(glm::ivec3 pos);
 	const Block* AtGlobal(glm::ivec3 pos) const;
-	void NewBlock(glm::ivec3 pos, Block::ID id);
+	void NewBlock(glm::ivec3 pos, Block::ID id, bool update = false);
 
 	void UpdateGPUBuffers();
 	Chunk() = delete;
@@ -64,19 +66,14 @@ public:
 	
 	std::vector<glm::ivec3> GetChunkNeighboursAt(glm::ivec3 pos) const;
 
-	/*void AddTop		(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next);
-	void AddBottom	(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next);
-	void AddRight	(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next);
-	void AddLeft	(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next);
-	void AddFront	(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next);
-	void AddBack	(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next);*/
-
 	glm::ivec3 LocalToWorld(glm::ivec3 pos) const;
 	glm::ivec3 WorldToLocal(glm::ivec3 pos) const;
 	std::mutex m_mtx;
 
 	StructureData* AddStructure(StructureData data);
 	std::vector<StructureData>& GetStructures();
+
+	void IterateSide(GridVec side, std::function<void(glm::ivec3 pos, Block* b)> itfun);
 
 private:
 	static int SGUID;
@@ -85,8 +82,8 @@ private:
 	MeshRenderer<FVertex> m_meshRenderer;
 	MeshRenderer<DebugVertex> m_debugMeshRenderer;
 	std::vector<StructureData> m_structures;
-
 	std::unique_ptr<ChunkCompositeMesh<FVertex>> m_compositeMesh;
+	std::vector<glm::ivec3> m_lightSources;
 
 	void GenerateBlock(glm::ivec3 pos, const Block& block, RemeshRequest* request);
 

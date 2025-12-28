@@ -201,7 +201,17 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)WorldGen.h">
       <Filter>Game\World</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RemeshRequest.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RemeshRequest.h">
+      <Filter>Graphics\high</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LightManager.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LightSource.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AssetManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ChunkProvider.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Input.cpp">
@@ -303,18 +313,16 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)WorldGen.cpp">
       <Filter>Game\World</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RemeshRequest.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RemeshRequest.cpp">
+      <Filter>Graphics\high</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)LightManager.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)AssetManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ChunkProvider.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.mtl">
-      <Filter>Assets</Filter>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.mtl">
-      <Filter>Assets</Filter>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.mtl">
-      <Filter>Assets</Filter>
-    </None>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.frag">
       <Filter>Assets</Filter>
     </None>
@@ -335,35 +343,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.obj">
-      <Filter>Assets</Filter>
-    </Object>
-    <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.obj">
-      <Filter>Assets</Filter>
-    </Object>
-    <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.obj">
-      <Filter>Assets</Filter>
-    </Object>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.png">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01_em.png">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.png">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02_em.png">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.png">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03_em.png">
-      <Filter>Assets</Filter>
-    </Image>
     <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\atlas.png">
       <Filter>Assets</Filter>
     </Image>

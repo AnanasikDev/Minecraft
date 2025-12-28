@@ -7,19 +7,19 @@
 
 struct BlockData
 {
-	Block::ID id;
-	bool isSolid : 1;
-	bool isTransparent : 1;
-	bool canFall : 1;
-	char emission;
-	std::string name;
+	Block::ID m_id;
+	bool m_isSolid : 1;
+	bool m_isTransparent : 1;
+	bool m_canFall : 1;
+	unsigned char m_emission : 4;
+	std::string m_name;
 
 	std::function<void(const BlockData& data, const GeomContext& ctx)> generateGeometry;
 	
-	BlockData() : id(Block::ID::Air), isSolid(true), isTransparent(false), canFall(false), emission(0)
+	BlockData() : m_id(Block::ID::Air), m_isSolid(true), m_isTransparent(false), m_canFall(false), m_emission(0)
 	{
 	}
-	BlockData(Block::ID id) : id(id), isSolid(true), isTransparent(false), canFall(false), emission(0)
+	BlockData(Block::ID id) : m_id(id), m_isSolid(true), m_isTransparent(false), m_canFall(false), m_emission(0)
 	{
 	}
 
@@ -33,44 +33,42 @@ struct BlockData
 	void DrawGridFace(const GeomContext& ctx, TextureAtlas::TextureID textureid) const;
 
 	static bool IsAir(Block::ID id);
-	inline bool IsAir() const
-	{
-		return id == Block::ID::Air;
-	}
+	bool IsAir() const;
 	static bool IsValid(Block::ID id);
-	inline bool IsValid() const
-	{
-		return id != Block::ID::INVALID;
-	}
+	bool IsValid() const;
 	static bool IsSolid(Block::ID id);
 	inline bool IsSolid() const
 	{
-		return isSolid;
+		return m_isSolid;
 	}
 	static bool IsTransparent(Block::ID id);
 	inline bool IsTransparent() const
 	{
-		return isTransparent;
+		return m_isTransparent;
 	}
 	static bool IsLightSource(Block::ID id);
 	inline bool IsLightSource() const
 	{
-		return emission > 0;
+		return m_emission > 0;
+	}
+	inline bool IsLightable() const
+	{
+		return IsAir() || IsTransparent() || !IsSolid();
 	}
 
 	BlockData* AffectedByGravity()
 	{
-		canFall = true;
+		m_canFall = true;
 		return this;
 	}
 	BlockData* LightSource(char power)
 	{
-		emission = power;
+		m_emission = power;
 		return this;
 	}
 	BlockData* Transparent()
 	{
-		isTransparent = true;
+		m_isTransparent = true;
 		return this;
 	}
 	BlockData* SimpleTexture(TextureAtlas::TextureID textureid)

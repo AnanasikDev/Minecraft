@@ -18,9 +18,10 @@ struct ChunkCompositeMesh : public BaseCompositeMesh<Vertex>
 	const Block* At(const GeomContext& ctx, GridVec vec) const
 	{
 		glm::ivec3 v = GridVecToVec3(vec);
-		const Block* result = ctx.request->chunk->AtSafe(ctx.localPos + v);
-		if (result) return result;
-		Chunk* chunks[6]{ ctx.request->neighbourDown, ctx.request->neighbourUp, ctx.request->neighbourNorth, ctx.request->neighbourSouth, ctx.request->neighbourEast, ctx.request->neighbourWest };
+		//const Block* result = ctx.request->chunk->AtSafe(ctx.localPos + v);
+		//if (result) return result;
+		return ctx.request->GetBlockAtWorld(ctx.globalPos + v);
+		/*Chunk* chunks[6]{ ctx.request->neighbourDown, ctx.request->neighbourUp, ctx.request->neighbourNorth, ctx.request->neighbourSouth, ctx.request->neighbourEast, ctx.request->neighbourWest };
 		for (Chunk*& chunk : chunks)
 		{
 			if (chunk)
@@ -29,7 +30,16 @@ struct ChunkCompositeMesh : public BaseCompositeMesh<Vertex>
 				if (result) return result;
 			}
 		}
-		return nullptr;
+		return nullptr;*/
+	}
+
+	/// <summary>
+	/// Returns block instance at specific position, nullptr if outside the chunk.
+	/// </summary>
+	const Block* GetBlock(const GeomContext& ctx) const
+	{
+		const Block* result = ctx.request->chunk->AtSafe(ctx.localPos);
+		return result;
 	}
 
 	/// <summary>
@@ -42,12 +52,23 @@ struct ChunkCompositeMesh : public BaseCompositeMesh<Vertex>
 		return id;
 	}
 
-	void AddBlockFace(const GeomContext& const ctx, TextureAtlas::TextureID texid)
+	void AddBlockFace(const GeomContext& ctx, TextureAtlas::TextureID texid)
 	{
 		const Block* neighbour = At(ctx, ctx.vec);
+		const Block* self = GetBlock(ctx);
 		if (neighbour && BlockData::IsSolid(neighbour->GetID()) && !BlockData::IsTransparent(neighbour->GetID())) return;
-		if (!neighbour && !BlockData::IsAir(IDAt(ctx, ctx.vec))) return; // handling chunk borders when generating for first time
+		if (!neighbour) return; // handling chunk borders when generating for first time
 
-		VRendererHelper<FVertex>::AddFace(*ctx.mesh->m_meshPtr, ctx.localPos, ctx.vec, texid, Block::GetLightLevelSafe(neighbour));
+		unsigned char blockLightLevel{ 0 };
+		if (self->GetEmission() == 0 && neighbour)
+		{ 
+			blockLightLevel = neighbour->GetTotalLightPacked();
+		}
+		else
+		{
+			blockLightLevel = self->GetTotalLightPacked();
+		}
+
+		VRendererHelper<FVertex>::AddFace(*ctx.mesh->m_meshPtr, ctx.localPos, ctx.vec, texid, blockLightLevel);
 	}
 };

@@ -88,6 +88,7 @@
     <ClCompile Include="..\Raspberry\RaspKeyboard.cpp" />
     <ClCompile Include="..\Raspberry\RaspMouse.cpp" />
     <ClCompile Include="..\Raspberry\XWindow.cpp" />
+    <ClCompile Include="LinuxAssetManager.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -98,6 +99,7 @@
     <ClInclude Include="..\Raspberry\RaspKeyboard.h" />
     <ClInclude Include="..\Raspberry\RaspMouse.h" />
     <ClInclude Include="..\Raspberry\XWindow.h" />
+    <ClInclude Include="LinuxAssetManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\setup.sh">

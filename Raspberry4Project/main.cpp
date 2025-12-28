@@ -10,6 +10,7 @@
 #include "RaspGraphics.h"
 #include "IInput.h"
 #include "Game.h"
+#include "LinuxAssetManager.h"
 
 int currentFrame = 0;
 
@@ -45,7 +46,8 @@ int main()
     input = new Input(new RaspKeyboard(), new RaspMouse(graphics->Window().GetDisplay(), graphics->Window().GetWindow()));
    
  // now we fire up our game giving it access to the input systems and graphics which are different on each platform but abstracted away   
-    game = new Game(input, graphics);
+    game = new Game(input, graphics, Game::Platform::Linux);
+    game->m_assetManager = std::make_unique<LinuxAssetManager>();
     game->Start();
 
     return 0;

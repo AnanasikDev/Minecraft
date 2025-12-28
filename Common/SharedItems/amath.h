@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
 #include <cmath>
 
 class AMath
@@ -53,13 +54,13 @@ public:
 	}
 };
 
-struct AABB
+struct AABB2D
 {
 	glm::vec2 m_min{ 0, 0 };
 	glm::vec2 m_max{ 0, 0 };
 
-	AABB() = default;
-	AABB(glm::vec2 min, glm::vec2 max) : m_min(min), m_max(max) {}
+	AABB2D() = default;
+	explicit AABB2D(glm::vec2 min, glm::vec2 max) : m_min(min), m_max(max) {}
 
 	void SetCenterTo(glm::vec2 center);
 	glm::vec2 GetCenter() const { return (m_max + m_min) / 2.0f; }
@@ -67,16 +68,48 @@ struct AABB
 	float GetArea() const { glm::vec2 s = GetSize(); return s.x * s.y; }
 	bool IsEmpty() const { return m_max.x - m_min.x == 0 || m_max.y - m_min.y == 0; }
 
-	static AABB FromCenterAndSize(glm::vec2 center, glm::vec2 size);
-	static AABB FromCenterAndSize(glm::vec2 center, float size);
+	static AABB2D FromCenterAndSize(glm::vec2 center, glm::vec2 size);
+	static AABB2D FromCenterAndSize(glm::vec2 center, float size);
 
 	static bool Contains(glm::vec2 min, glm::vec2 max, glm::vec2 pos);
 	static bool Intersects(glm::vec2 min1, glm::vec2 max1, glm::vec2 min2, glm::vec2 max2);
-	static bool Intersects(const AABB& a, const AABB& b);
+	static bool Intersects(const AABB2D& a, const AABB2D& b);
 
-	static AABB GetIntersection(const AABB& a, const AABB& b);
+	static AABB2D GetIntersection(const AABB2D& a, const AABB2D& b);
 	bool Contains(glm::vec2 pofloat) const;
-	bool Intersects(const AABB& other) const;
+	bool Intersects(const AABB2D& other) const;
 
 	glm::vec2 operator[](int index) const;
+};
+
+struct AABB3D
+{
+	glm::vec3 m_min{ 0 };
+	glm::vec3 m_max{ 0 };
+
+	AABB3D() = default;
+	explicit AABB3D(glm::vec3 min, glm::vec3 max) : m_min(min), m_max(max) {}
+
+	void SetCenterTo(glm::vec3 center);
+	glm::vec3 GetCenter() const { return (m_max + m_min) / 2.0f; }
+	glm::vec3 GetSize() const { return m_max - m_min; }
+	float GetVolume() const { glm::vec3 s = GetSize(); return s.x * s.y * s.z; }
+	bool IsEmpty() const
+	{
+		return AMath::RreNearlyEqual(m_max.x, m_min.x) || AMath::RreNearlyEqual(m_max.y, m_min.y)
+			|| AMath::RreNearlyEqual(m_max.z, m_min.z);
+	}
+
+	static AABB3D FromCenterAndSize(glm::vec3 center, glm::vec3 size);
+	static AABB3D FromCenterAndSize(glm::vec3 center, float size);
+
+	static bool Contains(glm::vec3 min, glm::vec3 max, glm::vec3 pos);
+	static bool Intersects(glm::vec3 min1, glm::vec3 max1, glm::vec3 min2, glm::vec3 max2);
+	static bool Intersects(const AABB3D& a, const AABB3D& b);
+
+	static AABB3D GetIntersection(const AABB3D& a, const AABB3D& b);
+	bool Contains(glm::vec3 pofloat) const;
+	bool Intersects(const AABB3D& other) const;
+
+	glm::vec3 operator[](int index) const;
 };

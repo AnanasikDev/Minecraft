@@ -16,15 +16,22 @@ class BlocksDatabase;
 class World;
 class Renderer;
 class BaseDebug;
+class AssetManager;
 
 class Game
 {
 public:
-	static constexpr unsigned int WINDOW_WIDTH = 1024;
-	static constexpr unsigned int WINDOW_HEIGHT = 768;
-	static constexpr float ASPECT_RATIO = 1024.0f / 768.0f;
+	enum class Platform
+	{
+		Windows,
+		Linux
+	};
 
-	Game(Input* const input, IGraphics* graphics);
+	static constexpr unsigned int WINDOW_WIDTH = 1024 * 1.5f;
+	static constexpr unsigned int WINDOW_HEIGHT = 768 * 1.5f;
+	static constexpr float ASPECT_RATIO = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
+
+	Game(Input* const input, IGraphics* graphics, Platform platform);
 	virtual ~Game();
 	void Start(); 
 	Input& GetInput();
@@ -38,6 +45,17 @@ public:
 	TextureAtlas atlas;
 	std::unique_ptr<Renderer> m_renderer;
 	std::unique_ptr<World> m_world;
+	std::unique_ptr<AssetManager> m_assetManager;
+
+	inline const bool IsWindows() const
+	{
+		return m_platform == Platform::Windows;
+	}
+
+	inline const bool IsLinux() const
+	{
+		return m_platform == Platform::Linux;
+	}
 
 protected:
 	void ProcessInput();
@@ -55,7 +73,6 @@ protected:
 
 private:
 	void InitializeOpenGLES();
-	void ClearScreen();
 
 	int frameCount{0};
 	bool m_displaySettings{ true };
@@ -63,5 +80,6 @@ private:
 	int COLLECT_FPS_DATA_FRAMES = 200;
 	std::deque<float> m_fpsDeque;
 	std::unique_ptr<BaseDebug> m_debug;
+	Platform m_platform{ Platform::Windows };
 };
 

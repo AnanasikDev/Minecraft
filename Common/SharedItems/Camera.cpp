@@ -27,14 +27,14 @@ glm::mat4 Camera::GetProjection() const
 	return glm::perspective(glm::radians(m_frustum.m_fov), m_frustum.m_size.x / m_frustum.m_size.y, m_frustum.m_nearPlane, m_frustum.m_farPlane);
 }
 
-bool Camera::IsInFrustum(glm::vec3 pos, bool includeVertical) const
+bool Camera::IsInFrustum(glm::vec3 pos, bool includeVertical, glm::vec3 offset) const
 {	
 	glm::vec3 eye{ m_transform.GetWorldForward() };
 	if (!includeVertical)
 	{
 		eye.y = 0;
 	}
-	glm::vec3 dir{ pos - (m_transform.GetWorldPosition() - eye * 4.0f) };
+	glm::vec3 dir{ pos - (m_transform.GetWorldPosition() + offset - eye * 4.0f) };
 	if (!includeVertical)
 	{
 		dir.y = 0;
@@ -54,7 +54,7 @@ Frustum::Frustum(float fov, glm::vec2 screen, float near, float far) : m_fov(fov
 {
 }
 
-int Frustum::ContainsAaBox(const AABB& refBox) const
+int Frustum::ContainsAaBox(const AABB2D& refBox) const
 {
 	//glm::vec3 vCorner[8];
 	//int iTotalIn = 0;

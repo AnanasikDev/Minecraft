@@ -8,6 +8,7 @@
 #include "Game.h"
 #include "WindowsGraphics.h"
 #include "WindowsInput.h"
+#include "WindowsAssetManager.h"
 
 #ifdef _DEBUG
 #include "vld.h"
@@ -42,9 +43,10 @@ int main()
 
 	input = new Input(new WindowsKeyboard(WinGraphics->Window()), new WindowsMouse(WinGraphics->Window()));
 
-	game = new Game(input, WinGraphics);
-
+	game = new Game(input, WinGraphics, Game::Platform::Windows);
+	game->m_assetManager = std::make_unique<WindowsAssetManager>();
 	game->Start();
+
 	delete game;
 	delete input;
 

@@ -5,10 +5,16 @@
 #include "commons.h"
 #include "Mesh.h"
 
+class Renderer;
+
 class RendererHelper
 {
 public:
 	void Init();
+
+	void DisableDepth();
+	void EnableDepth();
+	void ClearScreen();
 };
 
 template <typename Vertex>
@@ -23,23 +29,20 @@ template <>
 class VRendererHelper<FVertex> : public RendererHelper
 {
 public:
-	template <typename Vertex>
-	static void AddFace(MeshBase<Vertex>& mesh, glm::ivec3 pos, GridVec vec, TextureAtlas::TextureID texid, unsigned int light)
+	static void AddFace(MeshBase<FVertex>& mesh, glm::ivec3 pos, GridVec vec, TextureAtlas::TextureID texid, unsigned int light)
 	{
-		Face<Vertex> face = GenerateFace<Vertex>(pos, vec, texid, light, mesh.GetVerticesCount());
+		Face<FVertex> face = GenerateFace(pos, vec, texid, light, mesh.GetVerticesCount());
 		mesh.AddFace(face);
 	}
 
-	template <typename Vertex>
-	static Face<Vertex> GenerateFace(Vertex v00, Vertex v10, Vertex v11, Vertex v01, int index)
+	static Face<FVertex> GenerateFace(FVertex v00, FVertex v10, FVertex v11, FVertex v01, int index)
 	{
-		std::array<Vertex, 4> v{ v00, v10, v11, v01 };
+		std::array<FVertex, 4> v{ v00, v10, v11, v01 };
 		std::array<unsigned int, 6> e{ index + 3, index + 2, index, index + 2, index + 1, index };
-		return Face<Vertex>{ v, e };
+		return Face<FVertex>{ v, e };
 	}
 
-	template <typename Vertex>
-	static Face<Vertex> GenerateFace(glm::ivec3 pos, GridVec vec, TextureAtlas::TextureID texid, unsigned int light, int index)
+	static Face<FVertex> GenerateFace(glm::ivec3 pos, GridVec vec, TextureAtlas::TextureID texid, unsigned int light, int index)
 	{
 		switch (vec)
 		{
@@ -49,7 +52,7 @@ public:
 			FVertex v10(pos.x + 1,	pos.y,		pos.z,		0, 1, texid, light);
 			FVertex v11(pos.x + 1,	pos.y + 1,	pos.z,		0, 0, texid, light);
 			FVertex v01(pos.x,		pos.y + 1,	pos.z,		1, 0, texid, light);
-			return GenerateFace<Vertex>(v00, v10, v11, v01, index);
+			return GenerateFace(v00, v10, v11, v01, index);
 		}
 		case GridVec::Front:
 		{
@@ -57,7 +60,7 @@ public:
 			FVertex v10(pos.x + 1,	pos.y,		pos.z + 1,	0, 1, texid, light);
 			FVertex v11(pos.x + 1,	pos.y + 1,	pos.z + 1,	0, 0, texid, light);
 			FVertex v01(pos.x,		pos.y + 1,	pos.z + 1,	1, 0, texid, light);
-			return GenerateFace<Vertex>(v01, v11, v10, v00, index);
+			return GenerateFace(v01, v11, v10, v00, index);
 		}
 		case GridVec::Right:
 		{
@@ -65,7 +68,7 @@ public:
 			FVertex v10(pos.x + 1,	pos.y,		pos.z,		1, 1, texid, light);
 			FVertex v11(pos.x + 1,	pos.y,		pos.z + 1,	0, 1, texid, light);
 			FVertex v01(pos.x + 1,	pos.y + 1,	pos.z + 1,	0, 0, texid, light);
-			return GenerateFace<Vertex>(v00, v10, v11, v01, index);
+			return GenerateFace(v00, v10, v11, v01, index);
 		}
 		case GridVec::Left:
 		{
@@ -73,7 +76,7 @@ public:
 			FVertex v10(pos.x,		pos.y,		pos.z,		1, 1, texid, light);
 			FVertex v11(pos.x,		pos.y,		pos.z + 1,	0, 1, texid, light);
 			FVertex v01(pos.x,		pos.y + 1,	pos.z + 1,	0, 0, texid, light);
-			return GenerateFace<Vertex>(v01, v11, v10, v00, index);
+			return GenerateFace(v01, v11, v10, v00, index);
 		}
 		case GridVec::Top:
 		{
@@ -81,7 +84,7 @@ public:
 			FVertex v10(pos.x + 1,	pos.y + 1,	pos.z,		1, 0, texid, light);
 			FVertex v11(pos.x + 1,	pos.y + 1,	pos.z + 1,	1, 1, texid, light);
 			FVertex v01(pos.x,		pos.y + 1,	pos.z + 1,	0, 1, texid, light);
-			return GenerateFace<Vertex>(v00, v10, v11, v01, index);
+			return GenerateFace(v00, v10, v11, v01, index);
 		}
 		case GridVec::Bottom:
 		{
@@ -89,7 +92,7 @@ public:
 			FVertex v10(pos.x + 1,	pos.y,		pos.z,		1, 0, texid, light);
 			FVertex v11(pos.x + 1,	pos.y,		pos.z + 1,	1, 1, texid, light);
 			FVertex v01(pos.x,		pos.y,		pos.z + 1,	0, 1, texid, light);
-			return GenerateFace<Vertex>(v01, v11, v10, v00, index);
+			return GenerateFace(v01, v11, v10, v00, index);
 		}
 		}
 	}

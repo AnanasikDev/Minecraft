@@ -19,7 +19,7 @@ int Chunk::SGUID = 0;
 
 Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 {
-	m_isDirty = true;
+	m_isDirty = false;
 	m_isGenerating = false;
 	m_isReadyForRender = false;
 
@@ -28,7 +28,6 @@ Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 	m_meshRenderer.UseMesh(&m_mesh);
 	m_meshRenderer.UseRendererSystem(m_game->m_renderer.get());
 	m_meshRenderer.m_transform.Translate(LocalToWorld(glm::ivec3(0, 0, 0)));
-	//Generate();
 
 	m_debugMeshRenderer.UseMesh(&Mesh<DebugVertex>::MESH_BOX);
 	m_debugMeshRenderer.UseRendererSystem(m_game->m_renderer.get());
@@ -69,6 +68,86 @@ StructureData* Chunk::AddStructure(StructureData data)
 std::vector<StructureData>& Chunk::GetStructures()
 {
 	return m_structures;
+}
+
+void Chunk::IterateSide(GridVec side, std::function<void(glm::ivec3 pos, Block* b)> itfun)
+{
+	switch (side)
+	{
+	case GridVec::Right:
+	{
+		for (int z = 0; z < ZDEPTH; z++)
+		{
+			for (int y = 0; y < YHEIGHT; y++)
+			{
+				glm::ivec3 local = glm::ivec3(XWIDTH - 1, y, z);
+				itfun(local, AtForce(local));
+			}
+		}
+	}
+	break;
+	case GridVec::Left:
+	{
+		for (int z = 0; z < ZDEPTH; z++)
+		{
+			for (int y = 0; y < YHEIGHT; y++)
+			{
+				glm::ivec3 local = glm::ivec3(0, y, z);
+				itfun(local, AtForce(local));
+			}
+		}
+	}
+	break;
+	case GridVec::Front:
+	{
+		for (int x = 0; x < XWIDTH; x++)
+		{
+			for (int y = 0; y < YHEIGHT; y++)
+			{
+				glm::ivec3 local = glm::ivec3(x, y, ZDEPTH - 1);
+				itfun(local, AtForce(local));
+			}
+		}
+	}
+	break;
+	case GridVec::Back:
+	{
+		for (int x = 0; x < XWIDTH; x++)
+		{
+			for (int y = 0; y < YHEIGHT; y++)
+			{
+				glm::ivec3 local = glm::ivec3(x, y, 0);
+				itfun(local, AtForce(local));
+			}
+		}
+	}
+	break;
+
+	case GridVec::Top:
+	{
+		for (int x = 0; x < XWIDTH; x++)
+		{
+			for (int z = 0; z < ZDEPTH; z++)
+			{
+				glm::ivec3 local = glm::ivec3(x, YHEIGHT - 1, z);
+				itfun(local, AtForce(local));
+			}
+		}
+	}
+	break;
+	case GridVec::Bottom:
+	{
+		for (int x = 0; x < XWIDTH; x++)
+		{
+			for (int z = 0; z < ZDEPTH; z++)
+			{
+				glm::ivec3 local = glm::ivec3(x, 0, z);
+				itfun(local, AtForce(local));
+			}
+		}
+	}
+	break;
+	}
 }
 
 void Chunk::GenerateBlock(glm::ivec3 localPos, const Block& block, RemeshRequest* request)
@@ -119,7 +198,7 @@ Block* Chunk::AtForce(glm::ivec3 pos)
 
 Block* Chunk::AtSafe(glm::ivec3 pos)
 {
-	if (World::IsLocalBlockInsideChunk(pos)) AtForce(pos);
+	if (World::IsLocalBlockInsideChunk(pos)) return AtForce(pos);
 	else return nullptr;
 }
 
@@ -144,15 +223,72 @@ const Block* Chunk::AtGlobal(glm::ivec3 pos) const
 	return AtSafe(WorldToLocal(pos));
 }
 
-void Chunk::NewBlock(glm::ivec3 pos, Block::ID id)
+void Chunk::NewBlock(glm::ivec3 pos, Block::ID id, bool update)
 {
-	Block* block = AtSafe(pos);
+	Block* const block{ AtSafe(pos) };
 	if (!block || block->m_id == id) return;
+	const glm::ivec3 worldpos{ LocalToWorld(pos) };
+	const unsigned char prevEmission{ block->GetEmission() };
+	const unsigned char lightLevel{ block->GetLightLevel() };
 
-	block->Set(id);
-	if (BlockData::IsLightSource(id))
+	if (prevEmission > 0)
 	{
-		m_game->m_world->UpdateLightBlock(LocalToWorld(pos), block->GetLightLevel());
+		auto it = std::find(m_lightSources.begin(), m_lightSources.end(), pos);
+		if (it != m_lightSources.end())
+		{
+			m_lightSources.erase(it);
+		}
+		m_game->m_world->m_lightManager.PopLightSource(LightSource(worldpos, prevEmission));
+	}
+	block->Set(id, false);
+	unsigned char newEmission{ block->GetEmission() };
+	if (newEmission > 0)
+	{
+		m_lightSources.push_back(pos);
+		m_game->m_world->m_lightManager.PushLightSource(LightSource(worldpos, newEmission));
+	}
+	else if (update && prevEmission == 0)
+	{
+		const bool isObstruction{ BlockData::IsSolid(id) };
+		unsigned char newLightLevel{ 0 };
+		for (glm::ivec3 shift : World::closeXYZNeighbours)
+		{
+			Block* b = AtGlobal(worldpos + shift);
+			if (b)
+			{
+				unsigned char bl{ b->GetLightLevel() };
+				if (bl == 0) continue;
+				bl = static_cast<unsigned char>(bl - 1);
+				if (bl > newLightLevel)
+				{
+					newLightLevel = bl;
+				}
+			}
+		}
+		unsigned char newSkyExposure{ 0 };
+		Block* b = AtGlobal(worldpos + glm::ivec3(0, 1, 0));
+		if (b && b->GetSkyExposure() == 15)
+		{
+			newSkyExposure = 15;
+		}
+		else
+		{
+			for (glm::ivec3 shift : World::closeXYZNeighbours)
+			{
+				Block* b = AtGlobal(worldpos + shift);
+				if (b)
+				{
+					unsigned char bl{ b->GetSkyExposure() };
+					if (bl == 0) continue;
+					bl = static_cast<unsigned char>(bl - 1);
+					if (bl > newSkyExposure)
+					{
+						newSkyExposure = bl;
+					}
+				}
+			}
+		}
+		m_game->m_world->m_lightManager.PushNonLight(NonLight(worldpos, isObstruction, newLightLevel, newSkyExposure));
 	}
 }
 
@@ -175,33 +311,3 @@ void Chunk::RenderDebug(Camera* camera)
 	std::lock_guard<std::mutex> lock(m_mtx);
 	m_debugMeshRenderer.Render(camera);
 }
-
-//void Chunk::AddTop(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
-//{
-//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Top, texid, Block::GetLightLevelSafe(next));
-//}
-//
-//void Chunk::AddBottom(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
-//{
-//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Bottom, texid, Block::GetLightLevelSafe(next));
-//}
-//
-//void Chunk::AddRight(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
-//{
-//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Right, texid, Block::GetLightLevelSafe(next));
-//}
-//
-//void Chunk::AddLeft(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
-//{
-//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Left, texid, Block::GetLightLevelSafe(next));
-//}
-//
-//void Chunk::AddBack(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
-//{
-//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Back, texid, Block::GetLightLevelSafe(next));
-//}
-//
-//void Chunk::AddFront(glm::ivec3 pos, TextureAtlas::TextureID texid, const Block* next)
-//{
-//	VRendererHelper<FVertex>::AddFace(m_mesh, pos, GridVec::Front, texid, Block::GetLightLevelSafe(next));
-//}

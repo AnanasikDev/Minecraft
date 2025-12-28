@@ -47,10 +47,10 @@ void MeshRenderer<Vertex>::UpdateBuffers()
 	m_vbo.LinkExternal(&m_mesh->GetVertices(), m_mesh->GetVerticesCount() * Vertex::GetStride());
 	m_ebo.LinkExternal(&m_mesh->GetIndices(), m_mesh->GetIndicesCount() * sizeof(unsigned int));
 	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
+	/*while ((err = glGetError()) != GL_NO_ERROR)
 	{
 		std::cerr << "OpenGL error: " << err << std::endl;
-	}
+	}*/
 	glBindVertexArray(0);
 }
 

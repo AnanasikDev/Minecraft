@@ -21,14 +21,12 @@ struct Shader
 	} m_type;
 
 	std::string GetName() const;
-
 	static int TypeToGLType(Type type);
-
 	Shader(Program* const m_program, Type type);
-
 	bool LoadFromFile(const std::string& path);
-
 	bool LoadFromString(const std::string& code);
-
 	bool Compile();
+
+private:
+	static constexpr int PREVIEW_LENGTH{ 20 };
 };

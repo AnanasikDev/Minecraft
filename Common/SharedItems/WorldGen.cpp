@@ -41,15 +41,20 @@ WorldGen::WorldGen(World* world) : m_world(world)
 			std::vector<glm::ivec3> result;
 			for (int i = 0; i < num; i++)
 			{
-				glm::ivec3 pos(
+				glm::ivec3 localpos(
 					Random::GetInt2D(chunkGridPos.x * 11 + i, chunkGridPos.z * 5 + i, 0, 15),
 					0,
 					Random::GetInt2D(chunkGridPos.x * 2 + i, chunkGridPos.z * 13 + i, 0, 15)
 				);
-				pos += World::ChunkGridToWorldBlock(chunkGridPos);
-				BlockGenData data = GetBlockGenDataAt(pos);
-				pos.y = static_cast<int>(data.columnHeight) + 1;
-				result.push_back(pos);
+				glm::ivec3 worldpos = localpos + World::ChunkGridToWorldBlock(chunkGridPos);
+				BlockGenData data = GetBlockGenDataAt(worldpos);
+				worldpos.y = data.GetHeight() + 1;
+				data = GetBlockGenDataAt(worldpos);
+				if (data.IsCave())
+				{
+					continue;
+				}
+				result.push_back(worldpos);
 			}
 			return result;
 		}
@@ -74,21 +79,11 @@ void WorldGen::GenerateChunkGrid(RemeshRequest& request)
 		}
 	}
 
-	GenerateStructures(chunk);
-	static constexpr glm::ivec3 shifts[8]{
-		glm::ivec3(-1, 0, -1),
-		glm::ivec3(-1, 0, 0),
-		glm::ivec3(-1, 0, 1),
-		glm::ivec3(0, 0, -1),
-		glm::ivec3(0, 0, 1),
-		glm::ivec3(1, 0, -1),
-		glm::ivec3(1, 0, 0),
-		glm::ivec3(1, 0, 1)
-	};
-	for (const glm::ivec3& shift : shifts)
+	/*GenerateStructures(chunk);
+	for (const glm::ivec3& shift : World::allXZNeighbours)
 	{
 		RegenerateStructures(chunk->m_position + shift);
-	}
+	}*/
 	chunk->m_isReadable = true;
 }
 
@@ -126,14 +121,23 @@ BlockGenData WorldGen::GetBlockGenDataAt(glm::ivec3 pos)
 	mountains *= eps(temperature);
 	base *= eps(temperature);
 	float height{ base + mountains };
-	float density{ powf(static_cast<float>(m_perlin.noise3D
+	constexpr double D_CAVES_NOISE_SCALE{ static_cast<double>(CAVES_NOISE_SCALE) };
+	glm::dvec3 dpos(static_cast<double>(pos.x), static_cast<double>(pos.y), static_cast<double>(pos.z));
+	float caveness{ powf(static_cast<float>(m_perlin.noise3D
 	(
-		static_cast<double>(pos.x) * static_cast<double>(CAVES_NOISE_SCALE),
-		static_cast<double>(pos.y) * static_cast<double>(CAVES_NOISE_SCALE),
-		static_cast<double>(pos.z) * static_cast<double>(CAVES_NOISE_SCALE)
+		dpos.x * D_CAVES_NOISE_SCALE,
+		dpos.y * D_CAVES_NOISE_SCALE,
+		dpos.z * D_CAVES_NOISE_SCALE
 	)), 3.0f) };
 
-	return BlockGenData{ height, density, baseNoise, mountainsNoise, temperature, humidity, biom };
+	caveness += powf(static_cast<float>(m_perlin.noise3D
+	(
+		dpos.x * D_CAVES_NOISE_SCALE * 0.2f,
+		dpos.y * D_CAVES_NOISE_SCALE * 0.2f,
+		dpos.z * D_CAVES_NOISE_SCALE * 0.2f
+	)), 4.0f) * 0.775f;
+
+	return BlockGenData{ height, caveness, baseNoise, mountainsNoise, temperature, humidity, biom };
 }
 
 Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos)
@@ -152,7 +156,7 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 		return Block::ID::Bedrock;
 	}
 
-	if (worldPos.y >= data.columnHeight || data.density > 0.1f)
+	if (worldPos.y >= data.columnHeight || data.IsCave())
 	{
 		return Block::ID::Air;
 	}
@@ -187,27 +191,27 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 
 void WorldGen::GenerateStructures(Chunk* chunk)
 {
-	for (int i = 0; i < m_structureGenerators.size(); i++)
+	for (int structureIndex = 0; structureIndex < m_structureGenerators.size(); structureIndex++)
 	{
-		std::vector<glm::ivec3> positions = m_structureGenerators[i].GetPositions(chunk->m_position);
-		for (int s = 0; s < positions.size(); s++)
+		std::vector<glm::ivec3> positions = m_structureGenerators[structureIndex].GetPositions(chunk->m_position);
+		for (int posIndex = 0; posIndex < positions.size(); posIndex++)
 		{
-			StructureData data(i, positions[s]);
+			StructureData data(structureIndex, positions[posIndex]);
 			StructureData* d = chunk->AddStructure(data);
-			m_structureGenerators[i].Generate(positions[s], *d, false);
+			m_structureGenerators[structureIndex].Generate(positions[posIndex], *d, false);
 		}
 	}
 }
 
 void WorldGen::RegenerateStructures(glm::ivec3 chunkGridPos)
 {
-	for (int i = 0; i < m_structureGenerators.size(); i++)
+	for (int structureIndex = 0; structureIndex < m_structureGenerators.size(); structureIndex++)
 	{
-		std::vector<glm::ivec3> positions = m_structureGenerators[i].GetPositions(chunkGridPos);
-		for (int s = 0; s < positions.size(); s++)
+		std::vector<glm::ivec3> positions = m_structureGenerators[structureIndex].GetPositions(chunkGridPos);
+		for (int posIndex = 0; posIndex < positions.size(); posIndex++)
 		{
-			StructureData data(i, positions[s]);
-			m_structureGenerators[i].Generate(positions[s], data, true);
+			StructureData data(structureIndex, positions[posIndex]);
+			m_structureGenerators[structureIndex].Generate(positions[posIndex], data, true);
 		}
 	}
 }

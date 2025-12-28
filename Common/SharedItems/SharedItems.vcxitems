@@ -39,6 +39,7 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\tiny_obj_loader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)amath.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)AssetManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Block.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BlockCompositeMesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BlockData.h" />
@@ -57,8 +58,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)GeomContext.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gizmos.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)glh.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ChunkProvider.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IPoolable.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IRenderable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LightManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LightSource.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Mesh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MeshRenderer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)OpenGLDebug.h" />
@@ -92,16 +96,19 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Input.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\stb_image_impl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)amath.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)AssetManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BaseDebug.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Block.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BlockData.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BlocksDatabase.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Camera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Chunk.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ChunkProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)commons.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ElementBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Gameobject.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Gizmos.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)LightManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)OpenGLDebug.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Player.cpp" />
@@ -120,9 +127,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)WorldGen.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.mtl" />
-    <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.mtl" />
-    <None Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.mtl" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.frag" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.vert" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\test.frag" />
@@ -133,40 +137,6 @@
     <None Include="$(MSBuildThisFileDirectory)RenderRequest.tpp" />
   </ItemGroup>
   <ItemGroup>
-    <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Object>
-    <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-    </Object>
-    <Object Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-    </Object>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01.png" />
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_01_em.png" />
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02.png" />
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_02_em.png" />
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03.png" />
-    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Models\brian_03_em.png" />
     <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\atlas.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
