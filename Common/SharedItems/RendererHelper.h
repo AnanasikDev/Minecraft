@@ -4,17 +4,33 @@
 #include "Vertex.h"
 #include "commons.h"
 #include "Mesh.h"
+#include "Gamerules.h"
 
 class Renderer;
+struct Program;
+class AssetManager;
 
 class RendererHelper
 {
 public:
+	RendererHelper() = default;
+	~RendererHelper() = default;
+
 	void Init();
+	void Update(Gamerules& gamerules);
 
 	void DisableDepth();
 	void EnableDepth();
 	void ClearScreen();
+
+	void SetupPrograms(const AssetManager* const assets);
+	std::unique_ptr<Program> m_spriteProgram;
+	std::unique_ptr<Program> m_mainProgram;
+	std::unique_ptr<Program> m_waterProgram;
+
+private:
+
+	void CreateProgram(Program* program, std::string vertPath, std::string fragPath);
 };
 
 template <typename Vertex>

@@ -210,8 +210,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)LightSource.h">
       <Filter>Game\World</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)AssetManager.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)ChunkProvider.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Sunmoon.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Gamerules.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Collider.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ChunkProvider.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AssetManager.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Input.cpp">
@@ -319,8 +332,18 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)LightManager.cpp">
       <Filter>Game\World</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)AssetManager.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)ChunkProvider.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Sunmoon.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Collider.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ChunkProvider.cpp">
+      <Filter>Game\World</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)AssetManager.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.frag">
@@ -341,9 +364,24 @@
     <None Include="$(MSBuildThisFileDirectory)RenderRequest.tpp">
       <Filter>Graphics\high</Filter>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\water.frag">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\water.vert">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\sprite.frag">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\sprite.vert">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\atlas.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\sunmoon.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>

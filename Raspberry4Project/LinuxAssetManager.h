@@ -6,5 +6,5 @@ class LinuxAssetManager : public AssetManager
 {
 public:
 	LinuxAssetManager();
-	std::filesystem::path GetExecutableDir() override;
+	std::filesystem::path GetExecutableDir() const override;
 };

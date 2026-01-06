@@ -19,36 +19,18 @@
 template <typename Vertex>
 void Renderer::Push(RenderRequest<Vertex> request)
 {
-	//while (glGetError());
 	START_ERROR_CAPTURE();
 
+	request.m_program->Use();
 	glBindVertexArray(request.m_vao);
 
-	//request.m_matModel = glm::translate(request.m_matModel, glm::vec3(1.f, 0.0f, 0.0f));
-
-	unsigned int umodel = glGetUniformLocation(m_game->program->shaderProgram, "u_ModelMat");
-	glUniformMatrix4fv(umodel, 1, GL_FALSE, glm::value_ptr(request.m_matModel));
-
-	unsigned int uview = glGetUniformLocation(m_game->program->shaderProgram, "u_ViewMat");
-	glUniformMatrix4fv(uview, 1, GL_FALSE, glm::value_ptr(request.m_matView));
-
-	unsigned int uproj = glGetUniformLocation(m_game->program->shaderProgram, "u_ProjMat");
-	glUniformMatrix4fv(uproj, 1, GL_FALSE, glm::value_ptr(request.m_matProjection));
-
-	//unsigned int umaxlight = glGetUniformLocation(m_game->program->shaderProgram, "u_maxLightLevel");
-	//glUniform1i(uproj, 16);
+	request.m_program->SetMatrices(request.m_matModel, request.m_matProjection * request.m_matView);
 
 	unsigned int mode = m_mode;
 	if (request.m_modeOverride != RENDER_MODE::DEFAULT_MODE)
 		mode = request.m_modeOverride;
 
 	glDrawElements(mode, request.m_ebo->GetLength(), GL_UNSIGNED_INT, nullptr);
-
-	/*GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		std::cerr << "OpenGL error: " << err << std::endl;
-	}*/
 
 	END_ERROR_CAPTURE();
 

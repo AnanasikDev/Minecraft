@@ -28,6 +28,7 @@ private:
 public:
 	Camera() = default;
 	Camera(Game* game, const Frustum& frustum, const Transform& transform, float sense);
+	~Camera() = default;
 
 	Frustum& GetFrustum();
 	glm::mat4 GetView() const;

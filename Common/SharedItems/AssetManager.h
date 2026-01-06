@@ -12,7 +12,7 @@ public:
 	AssetManager() = default;
 
 	virtual ~AssetManager() = default;
-	virtual std::filesystem::path GetExecutableDir() = 0;
-	std::filesystem::path GetAssetPath(std::string file);
-	std::string GetAssetPathString(std::string file);
+	virtual std::filesystem::path GetExecutableDir() const = 0;
+	std::filesystem::path GetAssetPath(std::string file) const;
+	std::string GetAssetPathString(std::string file) const;
 };

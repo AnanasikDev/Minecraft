@@ -12,5 +12,9 @@ struct BaseCompositeMesh
 {
 	Mesh<Vertex>* m_meshPtr;
 
+	inline void SetMesh(Mesh<Vertex>* const newptr)
+	{
+		m_meshPtr = newptr;
+	}
 	virtual void AddBlockFace(const GeomContext& ctx, TextureAtlas::TextureID texid) = 0;
 };

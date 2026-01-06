@@ -19,5 +19,4 @@ void main()
     TexCoord = aTexCoord;
     TexID = aTexID;
     LightLevel = aLight;
-
 }

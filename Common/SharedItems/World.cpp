@@ -29,6 +29,7 @@ World::~World()
 void World::Init(Game* game)
 {
 	m_game = game;
+	m_atlas = game->m_atlas.get();
 	m_lightManager.Init(this);
 
 	m_isRunning = true;
@@ -301,6 +302,7 @@ void World::MeshChunk(RemeshRequest& request)
 		{
 			chunk->m_version++;
 			chunk->m_mesh.ClearGeometry();
+			chunk->m_waterMesh.ClearGeometry();
 			pushToGpu = true;
 			for (int x = 0; x < Chunk::XWIDTH; x++)
 			{
@@ -337,17 +339,19 @@ Chunk* World::GetChunkAt(glm::ivec3 pos)
 
 void World::GenerateChunkAt(glm::ivec3 chunkPos)
 {
+	//assert(glm::length(glm::vec3(chunkPos)) > 100);
 	m_chunks.try_emplace(chunkPos, std::make_unique<Chunk>(chunkPos, m_game));
 }
 
 void World::Render(Player* player)
 {
+	m_atlas->Use();
 	{
 		std::lock_guard<std::mutex> mapLock(m_chunksMutex);
-		std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it;
 		CHUNKS_RENDERED = 0;
 		CHUNKS_ACTIVE = 0;
-		for (it = m_chunks.begin(); it != m_chunks.end(); ++it)
+		std::vector<Chunk*> toRender;
+		for (std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
 		{
 			if (!it->second) continue;
 
@@ -364,15 +368,30 @@ void World::Render(Player* player)
 					c.y = player->m_transform.GetWorldPosition().y;
 					isInFrustum |= player->m_camera->IsInFrustum(c, false, -player->m_transform.GetLocalForward() * 10.0f);
 				}
-				if (isInFrustum)
+				if (isInFrustum && it->second)
 				{
-					it->second->Render(player->m_camera.get());
-					if (BaseDebug::show)
-					{
-						it->second->RenderDebug(player->m_camera.get());
-					}
+					toRender.push_back(it->second.get());
 					CHUNKS_RENDERED++;
 				}
+			}
+		}
+
+		for (std::vector<Chunk*>::iterator it = toRender.begin(); it != toRender.end(); ++it)
+		{
+			Chunk* chunk{ *it };
+			chunk->RenderSolid(player->m_camera.get());
+		}
+		for (std::vector<Chunk*>::iterator it = toRender.begin(); it != toRender.end(); ++it)
+		{
+			Chunk* chunk{ *it };
+			chunk->RenderTransparent(player->m_camera.get());
+		}
+		if (BaseDebug::show)
+		{
+			for (std::vector<Chunk*>::iterator it = toRender.begin(); it != toRender.end(); ++it)
+			{
+				Chunk* chunk{ *it };
+				chunk->RenderDebug(player->m_camera.get());
 			}
 		}
 	}

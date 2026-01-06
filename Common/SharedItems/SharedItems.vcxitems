@@ -48,6 +48,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Chunk.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ChunkCompositeMesh.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Collider.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)commons.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BaseDebug.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CompositeMesh.h" />
@@ -55,6 +56,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Entity.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Face.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gameobject.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Gamerules.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GeomContext.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gizmos.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)glh.h" />
@@ -78,6 +80,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)StructureData.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)StructureGenerator.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Sunmoon.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TextureAtlas.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Transform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Vertex.h" />
@@ -104,6 +107,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Camera.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Chunk.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ChunkProvider.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Collider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)commons.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ElementBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Gameobject.cpp" />
@@ -121,6 +125,7 @@
       <FileType>Document</FileType>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Shader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Sunmoon.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)TextureAtlas.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Transform.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)World.cpp" />
@@ -129,8 +134,12 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.frag" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.vert" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\sprite.frag" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\sprite.vert" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\test.frag" />
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\test.vert" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\water.frag" />
+    <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\water.vert" />
     <None Include="$(MSBuildThisFileDirectory)MeshRenderer.tpp">
       <FileType>Document</FileType>
     </None>
@@ -155,5 +164,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
     </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\sunmoon.png" />
   </ItemGroup>
 </Project>

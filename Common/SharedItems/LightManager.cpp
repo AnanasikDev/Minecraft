@@ -502,11 +502,11 @@ LightManager::PullResult LightManager::PullSkyLight(ChunkProvider chunkProvider,
 {
 	const glm::ivec3 chunkPos{ chunk->m_position };
 
-	static constexpr int minx[4]{ 0, 0, Chunk::XWIDTH - 1, 0};
-	static constexpr int maxx[4]{ Chunk::XWIDTH, Chunk::XWIDTH, Chunk::XWIDTH, 1 };
-	static constexpr int minz[4]{ Chunk::ZDEPTH - 1, 0, 0, 0 };
-	static constexpr int maxz[4]{ Chunk::ZDEPTH, 1, Chunk::ZDEPTH, Chunk::ZDEPTH };
-	static constexpr int size[4]{ Chunk::ZDEPTH, Chunk::ZDEPTH, Chunk::XWIDTH, Chunk::XWIDTH};
+	static constexpr int minx[4]{ 0,					0,				Chunk::XWIDTH - 1,	0 };
+	static constexpr int maxx[4]{ Chunk::XWIDTH,		Chunk::XWIDTH,	Chunk::XWIDTH,		1 };
+	static constexpr int minz[4]{ Chunk::ZDEPTH - 1,	0,				0,					0 };
+	static constexpr int maxz[4]{ Chunk::ZDEPTH,		1,				Chunk::ZDEPTH,		Chunk::ZDEPTH };
+	static constexpr int size[4]{ Chunk::ZDEPTH,		Chunk::ZDEPTH,	Chunk::XWIDTH,		Chunk::XWIDTH};
 
 	glm::ivec3 shift;
 	glm::ivec3 neighToOrig;

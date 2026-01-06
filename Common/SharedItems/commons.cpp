@@ -47,3 +47,5 @@ glm::ivec3 InvertVec3(glm::ivec3 vec)
 	return -vec;
 }
 
+float GameTime::DAY_SECONDS = 10;
+Timer GameTime::m_Timer;

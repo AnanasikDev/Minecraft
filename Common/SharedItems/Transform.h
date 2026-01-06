@@ -21,6 +21,8 @@ public:
     void SetLocalRotation(const glm::quat& rot);
     void SetLocalScale(const glm::vec3& scale);
     void ScaleLocal(const glm::vec3& factor);
+    void SetWorldRotation(const glm::quat& worldRot);
+    void LookAt(glm::vec3 target, glm::vec3 worldUp);
 
     void Translate(const glm::vec3& delta);
     void Rotate(const glm::quat& delta);

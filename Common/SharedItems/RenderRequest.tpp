@@ -13,4 +13,5 @@ RenderRequest<Vertex>::RenderRequest(MeshRenderer<Vertex>* const meshRenderer, c
 	m_vbo = &meshRenderer->m_vbo;
 	m_ebo = &meshRenderer->m_ebo;
 	m_vao = meshRenderer->m_vaoid;
+	m_program = meshRenderer->m_program;
 }

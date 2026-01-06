@@ -26,5 +26,6 @@ public:
 		Lamp,
 	};
 
-	void BindAtlas(std::string path, unsigned int wrapMode);
+	void Create(std::string path, unsigned int wrapMode, int tilesize);
+	void Use();
 };

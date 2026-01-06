@@ -101,3 +101,9 @@ struct Mesh<FVertex> : public MeshBase<FVertex>
 {
 	static Mesh<FVertex> MESH_BOX;
 };
+
+template <>
+struct Mesh<SpriteVertex> : public MeshBase<SpriteVertex>
+{
+	static Mesh<SpriteVertex> MESH_BOX;
+};

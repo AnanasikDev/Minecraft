@@ -5,6 +5,7 @@
 
 #include "Random.h"
 
+#include "Sunmoon.h"
 #include "World.h"
 #include "Game.h"
 #include "Input.h"
@@ -45,7 +46,6 @@ Game::~Game()
 
 }
 
-
 void Game::Start()
 {
 	InitializeOpenGLES();
@@ -55,18 +55,13 @@ void Game::Start()
 	printf("This GPU Renders with :%s\n", glGetString(GL_RENDERER));
 	printf("This GPU Shaders are  :%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-	program = new Program();
-	vertShader = new Shader(program, Shader::Type::Vertex);
-	vertShader->LoadFromFile(m_assetManager->GetAssetPathString("Shaders/test.vert"));
-	vertShader->Compile();
+	GameTime::Init();
+	GameTime::SetDayTime(m_gamerules.m_DefaultTime);
 
-	fragShader = new Shader(program, Shader::Type::Fragment);
-	fragShader->LoadFromFile(m_assetManager->GetAssetPathString("Shaders/test.frag"));
-	fragShader->Compile();
-
-	Shader* shaders[2]{ vertShader, fragShader };
-	program->AddShaders<2>(shaders);
-	glUseProgram(program->shaderProgram);
+	RendererHelper rendererHelper;
+	rendererHelper.Init();
+	m_renderer->m_helper = &rendererHelper;
+	m_renderer->m_helper->SetupPrograms(m_assetManager.get());
 
 	Random::Init();
 
@@ -74,14 +69,11 @@ void Game::Start()
 	auto startTime = std::chrono::system_clock::now();
 	auto lastTime = startTime;
 
-	atlas.BindAtlas(m_assetManager->GetAssetPathString("Textures/atlas.png"), GL_REPEAT);
+	m_atlas = std::make_unique<TextureAtlas>();
+	m_atlas->Create(m_assetManager->GetAssetPathString("Textures/atlas.png"), GL_REPEAT, 16);
 
 	IMouse& mouse = GetInput().GetMouse();
 	mouse.Init();
-	
-	RendererHelper rendererHelper;
-	rendererHelper.Init();
-	m_renderer->m_helper = &rendererHelper;
 
 	BlocksDatabase::Init();
 
@@ -91,7 +83,21 @@ void Game::Start()
 
 	m_player = std::make_unique<Player>(this);
 
+	m_sunmoon = std::make_unique<Sunmoon>();
+	m_sunmoon->Init(this);
+
 	graphics->InitGUI();
+
+	if (IsLinux())
+	{
+		m_world->GENERATION_DISTANCE = 4;
+	}
+	if (IsWindows())
+	{
+		m_world->GENERATION_DISTANCE = 10;
+	}
+
+	GameTime::ToggleDayCycle(m_gamerules.m_DoDayNightCycle);
 
 	while(!quitting)
 	{
@@ -147,7 +153,11 @@ void Game::Start()
 		m_player->Update();
 		m_world->Update();
 		m_world->FixedUpdate();
+		m_sunmoon->Update(m_player.get());
 
+		m_renderer->m_helper->Update(m_gamerules);
+		m_renderer->m_helper->Update(m_gamerules);
+		m_sunmoon->Render(m_player.get());
 		m_world->Render(m_player.get());
 		m_player->Render();
 		DrawCrosshair();
@@ -248,6 +258,8 @@ void Game::DisplaySettings()
 	std::string iscave = data.IsCave() ? "Cave" : "Non-cave";
 	ImGui::Text(iscave.c_str());
 	ImGui::DragFloat("Caveness", &data.caveness, 0.0f, 0.0f, 0.0f, "%.3f", ImGuiSliderFlags_NoInput);
+	std::string iswater = data.isWater ? "Water" : "Not water";
+	ImGui::Text(iswater.c_str());
 
 	glm::vec3 rightHandPos = m_player->m_rightHand.m_transform.GetLocalPosition();
 	ImGui::DragFloat3("Right hand", &rightHandPos.x, 0.05f);
@@ -266,6 +278,17 @@ void Game::DisplaySettings()
 	ImGui::DragInt("Light", &light, 0, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	ImGui::DragInt("Sky exposure", &sky, 0, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	ImGui::Text(name.c_str());
+
+	if (ImGui::Checkbox("Do day/night", &m_gamerules.m_DoDayNightCycle))
+	{
+		GameTime::ToggleDayCycle(m_gamerules.m_DoDayNightCycle);
+	}
+
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << GameTime::TimeOfDay();
+	std::string stime = ss.str();
+	ImGui::Text(stime.c_str());
+	ImGui::DragFloat("Day duration", &GameTime::DAY_SECONDS, 1.0f, 3.0f, 100.0f, "%.3f");
 }
 
 void Game::InitializeOpenGLES()

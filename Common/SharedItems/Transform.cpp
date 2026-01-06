@@ -79,6 +79,33 @@ void Transform::SetLocalScale(const glm::vec3& scale)
     MarkDirty();
 }
 
+void Transform::SetWorldRotation(const glm::quat& worldRot)
+{
+    if (m_parent)
+    {
+        glm::quat parentRot = m_parent->GetWorldRotation();
+        SetLocalRotation(glm::inverse(parentRot) * worldRot);
+    }
+    else
+    {
+        SetLocalRotation(worldRot);
+    }
+}
+
+void Transform::LookAt(glm::vec3 target, glm::vec3 worldUp)
+{
+    glm::vec3 worldPos = GetWorldPosition();
+
+    glm::vec3 dir = target - worldPos;
+    if (glm::length2(dir) < 0.0001f) return;
+
+    dir = glm::normalize(dir);
+
+    glm::quat targetWorldRot = glm::quatLookAt(-dir, worldUp);
+
+    SetWorldRotation(targetWorldRot);
+}
+
 void Transform::ScaleLocal(const glm::vec3& factor)
 {
     SetLocalScale(m_localScale * factor);

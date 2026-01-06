@@ -32,6 +32,10 @@ WorldGen::WorldGen(World* world) : m_world(world)
 			{
 
 			} break;
+			default:
+			{
+
+			} break;
 			}
 			structure.m_isGenerated = true;
 		},
@@ -50,7 +54,7 @@ WorldGen::WorldGen(World* world) : m_world(world)
 				BlockGenData data = GetBlockGenDataAt(worldpos);
 				worldpos.y = data.GetHeight() + 1;
 				data = GetBlockGenDataAt(worldpos);
-				if (data.IsCave())
+				if (data.IsCave() || data.isWater)
 				{
 					continue;
 				}
@@ -79,11 +83,11 @@ void WorldGen::GenerateChunkGrid(RemeshRequest& request)
 		}
 	}
 
-	/*GenerateStructures(chunk);
+	GenerateStructures(chunk);
 	for (const glm::ivec3& shift : World::allXZNeighbours)
 	{
 		RegenerateStructures(chunk->m_position + shift);
-	}*/
+	}
 	chunk->m_isReadable = true;
 }
 
@@ -137,7 +141,13 @@ BlockGenData WorldGen::GetBlockGenDataAt(glm::ivec3 pos)
 		dpos.z * D_CAVES_NOISE_SCALE * 0.2f
 	)), 4.0f) * 0.775f;
 
-	return BlockGenData{ height, caveness, baseNoise, mountainsNoise, temperature, humidity, biom };
+	bool isWater{ pos.y > height && pos.y < SEA_LEVEL };
+	if (pos.y > height - BEACH_LENGTH && pos.y < SEA_LEVEL + BEACH_LENGTH)
+	{
+		biom = Biom::Beach;
+	}
+
+	return BlockGenData{ height, caveness, baseNoise, mountainsNoise, temperature, humidity, biom, isWater };
 }
 
 Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos)
@@ -156,6 +166,11 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 		return Block::ID::Bedrock;
 	}
 
+	if (data.isWater)
+	{
+		return Block::ID::Water;
+	}
+
 	if (worldPos.y >= data.columnHeight || data.IsCave())
 	{
 		return Block::ID::Air;
@@ -170,12 +185,14 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 	{
 		switch (data.biom)
 		{
+
 		case Biom::Desert:
 			return Block::ID::Sand;
+
 		case Biom::Taiga:
 		case Biom::Forest:
 		{
-			if (worldPos.y == static_cast<int>(data.columnHeight))
+			if (worldPos.y == data.GetHeight())
 			{
 				return Block::ID::Grass;
 			}
@@ -184,6 +201,11 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 				return Block::ID::Dirt;
 			}
 		}
+		case Biom::Beach:
+		{
+			return Block::ID::Sand;
+		}
+
 		}
 	}
 }

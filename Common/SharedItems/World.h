@@ -167,4 +167,5 @@ private:
 	SafeQueue<Chunk*> m_toUpdateGPUBuffersQueue;
 	std::vector<std::thread> m_workerThreads;
 	std::unique_ptr<WorldGen> m_generator;
+	TextureAtlas* m_atlas{ nullptr };
 };

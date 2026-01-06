@@ -12,7 +12,8 @@ enum class Biom
 {
 	Forest,
 	Desert,
-	Taiga
+	Taiga,
+	Beach
 };
 
 struct BlockGenData
@@ -25,6 +26,8 @@ struct BlockGenData
 	float temperature{ 0 };
 	float humidity{ 0 };
 	Biom biom{ Biom::Forest };
+
+	bool isWater{ false };
 
 	inline int GetHeight() const
 	{
@@ -41,10 +44,12 @@ class WorldGen
 {
 public:
 	static constexpr float BASE_NOISE_SCALE{ 0.045f };
-	static constexpr float TEMPERATURE_NOISE_SCALE{ 0.01f };
+	static constexpr float TEMPERATURE_NOISE_SCALE{ 0.002f };
 	static constexpr float HUMIDITY_NOISE_SCALE{ 0.02f };
 	static constexpr float CAVES_NOISE_SCALE{ 0.075f };
 	static constexpr float MOUNTAINS_NOISE_SCALE{ 0.01f };
+	static constexpr float SEA_LEVEL{ 62 };
+	static constexpr float BEACH_LENGTH{ 1 };
 
 	WorldGen(World* world);
 	~WorldGen() = default;
@@ -67,7 +72,8 @@ public:
 		case Biom::Desert: return "Desert";
 		case Biom::Forest: return "Forest";
 		case Biom::Taiga: return "Taiga";
-		default: return "UNKNOWN";
+		case Biom::Beach: return "Beach";
+		default: return "UNKNOWN OR UNNAMED";
 		}
 	}
 

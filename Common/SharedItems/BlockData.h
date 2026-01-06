@@ -4,6 +4,7 @@
 #include "Block.h"
 #include "GeomContext.h"
 #include "TextureAtlas.h"
+#include "Collider.h"
 
 struct BlockData
 {
@@ -13,6 +14,7 @@ struct BlockData
 	bool m_canFall : 1;
 	unsigned char m_emission : 4;
 	std::string m_name;
+	Collider m_collider;
 
 	std::function<void(const BlockData& data, const GeomContext& ctx)> generateGeometry;
 	
@@ -55,6 +57,11 @@ struct BlockData
 	{
 		return IsAir() || IsTransparent() || !IsSolid();
 	}
+	inline bool IsWater() const
+	{
+		return IsWater(m_id);
+	}
+	static bool IsWater(Block::ID id);
 
 	BlockData* AffectedByGravity()
 	{
@@ -89,6 +96,11 @@ struct BlockData
 	BlockData* ContextualTexture(const std::function<void(const BlockData& data, const GeomContext& ctx)>& generateGeometry)
 	{
 		SetGeomFunc(generateGeometry);
+		return this;
+	}
+	BlockData* SetCollider(Collider collider)
+	{
+		m_collider = collider;
 		return this;
 	}
 };

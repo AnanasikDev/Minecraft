@@ -7,7 +7,7 @@ LinuxAssetManager::LinuxAssetManager() : AssetManager()
     m_assetRoot = GetExecutableDir() / "../Common/Assets";
 }
 
-std::filesystem::path LinuxAssetManager::GetExecutableDir()
+std::filesystem::path LinuxAssetManager::GetExecutableDir() const
 {
     char buffer[4096];
     ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);

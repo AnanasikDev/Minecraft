@@ -7,7 +7,7 @@ WindowsAssetManager::WindowsAssetManager() : AssetManager()
     m_assetRoot = GetExecutableDir() / "Assets";
 }
 
-std::filesystem::path WindowsAssetManager::GetExecutableDir()
+std::filesystem::path WindowsAssetManager::GetExecutableDir() const
 {
     char buffer[MAX_PATH];
     GetModuleFileNameA(nullptr, buffer, MAX_PATH);

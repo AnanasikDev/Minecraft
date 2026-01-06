@@ -1,5 +1,6 @@
 #include "World.h"
 #include "Chunk.h"
+#include "Collider.h"
 #include "Block.h"
 #include "BlocksDatabase.h"
 #include "CompositeMesh.h"
@@ -44,6 +45,11 @@ bool BlockData::IsLightSource(Block::ID id)
 	return BlocksDatabase::Get(id)->IsLightSource();
 }
 
+bool BlockData::IsWater(Block::ID id)
+{
+	return id == Block::ID::Water;
+}
+
 void BlockData::GenerateGeometry(const GeomContext& ctx)
 {
 	generateGeometry(*this, ctx);
@@ -71,4 +77,9 @@ unsigned char Block::GetEmission() const
 bool Block::IsLightEmitter() const
 {
 	return GetEmission() > 0;
+}
+
+Collider* Block::GetCollider()
+{
+	return &(GetData()->m_collider);
 }

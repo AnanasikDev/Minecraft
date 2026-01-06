@@ -25,7 +25,7 @@ class Game;
 template <typename Vertex>
 struct ChunkCompositeMesh;
 
-class Chunk : public IRenderable
+class Chunk
 {
 public:
 	static constexpr int XWIDTH{ 16 };
@@ -60,8 +60,9 @@ public:
 	Chunk(glm::ivec3 pos, Game* game);
 	~Chunk();
 
-	void Render(Camera* camera) override;
-	void RenderDebug(Camera* camera) override;
+	void RenderSolid(Camera* camera);
+	void RenderTransparent(Camera* camera);
+	void RenderDebug(Camera* camera);
 	static std::array<glm::ivec3, 8> GetCorners(glm::ivec3 chunkGridPos);
 	
 	std::vector<glm::ivec3> GetChunkNeighboursAt(glm::ivec3 pos) const;
@@ -73,13 +74,16 @@ public:
 	StructureData* AddStructure(StructureData data);
 	std::vector<StructureData>& GetStructures();
 
-	void IterateSide(GridVec side, std::function<void(glm::ivec3 pos, Block* b)> itfun);
-
 private:
 	static int SGUID;
 	Game* m_game{ nullptr };
+	
 	Mesh<FVertex> m_mesh;
 	MeshRenderer<FVertex> m_meshRenderer;
+	
+	Mesh<FVertex> m_waterMesh;
+	MeshRenderer<FVertex> m_waterMeshRenderer;
+
 	MeshRenderer<DebugVertex> m_debugMeshRenderer;
 	std::vector<StructureData> m_structures;
 	std::unique_ptr<ChunkCompositeMesh<FVertex>> m_compositeMesh;

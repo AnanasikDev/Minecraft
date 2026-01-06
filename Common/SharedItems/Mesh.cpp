@@ -6,3 +6,4 @@
 
 Mesh<DebugVertex> Mesh<DebugVertex>::MESH_BOX;
 Mesh<FVertex> Mesh<FVertex>::MESH_BOX;
+Mesh<SpriteVertex> Mesh<SpriteVertex>::MESH_BOX;

@@ -57,5 +57,29 @@ struct ModelVertex : public BaseVertex<Txyz>
 	}
 };
 
+template <typename Txyz, typename Tuv, typename Ttexid>
+struct BaseSpriteVertex : public BaseVertex<Txyz>
+{
+	Tuv u, v;
+	Ttexid texid;
+
+	BaseSpriteVertex(Txyz x, Txyz y, Txyz z, Tuv u, Tuv v, Ttexid texid) : BaseVertex<Txyz>(x, y, z), u(u), v(v), texid(texid)
+	{
+	}
+
+	static constexpr inline unsigned int GetStride()
+	{
+		return sizeof(BaseSpriteVertex<Txyz, Tuv, Ttexid>);
+	}
+
+	static void SetLayout(BufferLayout* layout)
+	{
+		layout->PushAttribute<Txyz>(3, GetStride()); // xyz
+		layout->PushAttribute<Tuv>(2, GetStride());  // uv
+		layout->PushAttribute<Ttexid>(1, GetStride());  // texid
+	}
+};
+
 using FVertex = ModelVertex<float, float, int>;
+using SpriteVertex = BaseSpriteVertex<float, float, int>;
 using DebugVertex = BaseVertex<float>;

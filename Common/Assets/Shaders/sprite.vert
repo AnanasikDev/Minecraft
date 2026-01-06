@@ -4,20 +4,16 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 layout (location = 2) in int aTexID;
-layout (location = 3) in int aLight;
 
 uniform mat4 u_ModelMat;
 uniform mat4 u_VPMat;
 
 out vec2 TexCoord;
 out flat int TexID;
-out flat int LightLevel;
 
 void main()
 {
     gl_Position = u_VPMat * u_ModelMat * vec4(aPos, 1.0);
     TexCoord = aTexCoord;
     TexID = aTexID;
-    LightLevel = aLight;
-
 }

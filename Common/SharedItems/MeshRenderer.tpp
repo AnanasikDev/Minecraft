@@ -4,6 +4,7 @@
 #include "Mesh.h"
 #include "MeshRenderer.h"
 #include "glh.h"
+#include "BaseDebug.h"
 
 template <typename Vertex>
 MeshRenderer<Vertex>::MeshRenderer()
@@ -25,6 +26,12 @@ MeshRenderer<Vertex>::~MeshRenderer()
 	}
 }
 
+template<typename Vertex>
+void MeshRenderer<Vertex>::UseProgram(Program* program)
+{
+	m_program = program;
+}
+
 template <typename Vertex>
 void MeshRenderer<Vertex>::UseRendererSystem(Renderer* renderer)
 {
@@ -41,16 +48,15 @@ template <typename Vertex>
 void MeshRenderer<Vertex>::UpdateBuffers()
 {
 	glBindVertexArray(m_vaoid);
-	while (glGetError());
-	//printf("Updating buffers v:%d i:%d\n", m_mesh->GetVerticesCount(), m_mesh->GetIndicesCount());
+
+	START_ERROR_CAPTURE();
 
 	m_vbo.LinkExternal(&m_mesh->GetVertices(), m_mesh->GetVerticesCount() * Vertex::GetStride());
 	m_ebo.LinkExternal(&m_mesh->GetIndices(), m_mesh->GetIndicesCount() * sizeof(unsigned int));
 	GLenum err;
-	/*while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		std::cerr << "OpenGL error: " << err << std::endl;
-	}*/
+
+	END_ERROR_CAPTURE();
+
 	glBindVertexArray(0);
 }
 

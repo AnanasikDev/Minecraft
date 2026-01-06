@@ -6,5 +6,5 @@ class WindowsAssetManager : public AssetManager
 {
 public:
 	WindowsAssetManager();
-	std::filesystem::path GetExecutableDir() override;
+	std::filesystem::path GetExecutableDir() const override;
 };

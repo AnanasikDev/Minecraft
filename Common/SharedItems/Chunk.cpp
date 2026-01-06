@@ -28,6 +28,12 @@ Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 	m_meshRenderer.UseMesh(&m_mesh);
 	m_meshRenderer.UseRendererSystem(m_game->m_renderer.get());
 	m_meshRenderer.m_transform.Translate(LocalToWorld(glm::ivec3(0, 0, 0)));
+	m_meshRenderer.UseProgram(m_game->m_renderer->m_helper->m_mainProgram.get());
+
+	m_waterMeshRenderer.UseMesh(&m_waterMesh);
+	m_waterMeshRenderer.UseRendererSystem(m_game->m_renderer.get());
+	m_waterMeshRenderer.m_transform.Translate(LocalToWorld(glm::ivec3(0, 0, 0)));
+	m_waterMeshRenderer.UseProgram(m_game->m_renderer->m_helper->m_waterProgram.get());
 
 	m_debugMeshRenderer.UseMesh(&Mesh<DebugVertex>::MESH_BOX);
 	m_debugMeshRenderer.UseRendererSystem(m_game->m_renderer.get());
@@ -35,9 +41,10 @@ Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 	m_debugMeshRenderer.m_mode = RENDER_MODE::WIREFRAME_MODE;
 	m_debugMeshRenderer.m_transform.Translate(glm::vec3(LocalToWorld(glm::ivec3(0))) + glm::vec3(XWIDTH, YHEIGHT, ZDEPTH) / 2.0f);
 	m_debugMeshRenderer.m_transform.ScaleLocal(glm::vec3(XWIDTH, YHEIGHT, ZDEPTH));
+	m_debugMeshRenderer.UseProgram(m_game->m_renderer->m_helper->m_mainProgram.get());
 
 	m_compositeMesh = std::make_unique<ChunkCompositeMesh<FVertex>>();
-	m_compositeMesh->m_meshPtr = &m_mesh;
+	m_compositeMesh->SetMesh(&m_mesh);
 }
 
 Chunk::~Chunk()
@@ -70,89 +77,19 @@ std::vector<StructureData>& Chunk::GetStructures()
 	return m_structures;
 }
 
-void Chunk::IterateSide(GridVec side, std::function<void(glm::ivec3 pos, Block* b)> itfun)
-{
-	switch (side)
-	{
-	case GridVec::Right:
-	{
-		for (int z = 0; z < ZDEPTH; z++)
-		{
-			for (int y = 0; y < YHEIGHT; y++)
-			{
-				glm::ivec3 local = glm::ivec3(XWIDTH - 1, y, z);
-				itfun(local, AtForce(local));
-			}
-		}
-	}
-	break;
-	case GridVec::Left:
-	{
-		for (int z = 0; z < ZDEPTH; z++)
-		{
-			for (int y = 0; y < YHEIGHT; y++)
-			{
-				glm::ivec3 local = glm::ivec3(0, y, z);
-				itfun(local, AtForce(local));
-			}
-		}
-	}
-	break;
-	case GridVec::Front:
-	{
-		for (int x = 0; x < XWIDTH; x++)
-		{
-			for (int y = 0; y < YHEIGHT; y++)
-			{
-				glm::ivec3 local = glm::ivec3(x, y, ZDEPTH - 1);
-				itfun(local, AtForce(local));
-			}
-		}
-	}
-	break;
-	case GridVec::Back:
-	{
-		for (int x = 0; x < XWIDTH; x++)
-		{
-			for (int y = 0; y < YHEIGHT; y++)
-			{
-				glm::ivec3 local = glm::ivec3(x, y, 0);
-				itfun(local, AtForce(local));
-			}
-		}
-	}
-	break;
-
-	case GridVec::Top:
-	{
-		for (int x = 0; x < XWIDTH; x++)
-		{
-			for (int z = 0; z < ZDEPTH; z++)
-			{
-				glm::ivec3 local = glm::ivec3(x, YHEIGHT - 1, z);
-				itfun(local, AtForce(local));
-			}
-		}
-	}
-	break;
-	case GridVec::Bottom:
-	{
-		for (int x = 0; x < XWIDTH; x++)
-		{
-			for (int z = 0; z < ZDEPTH; z++)
-			{
-				glm::ivec3 local = glm::ivec3(x, 0, z);
-				itfun(local, AtForce(local));
-			}
-		}
-	}
-	break;
-	}
-}
-
 void Chunk::GenerateBlock(glm::ivec3 localPos, const Block& block, RemeshRequest* request)
 {
 	BlockData* data = BlocksDatabase::Get(block.m_id);
+
+	if (data->IsWater())
+	{
+		m_compositeMesh->SetMesh(&m_waterMesh);
+	}
+	else
+	{
+		m_compositeMesh->SetMesh(&m_mesh);
+	}
+
 	glm::ivec3 worldPos{ LocalToWorld(localPos) };
 	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Right,	 m_game->m_world.get(), request, m_compositeMesh.get()));
 	data->GenerateGeometry(GeomContext(localPos, worldPos, GridVec::Left,	 m_game->m_world.get(), request, m_compositeMesh.get()));
@@ -296,14 +233,21 @@ void Chunk::UpdateGPUBuffers()
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
 	m_meshRenderer.UpdateBuffers();
+	m_waterMeshRenderer.UpdateBuffers();
 	m_isGenerating = false;
 	m_isReadyForRender = true;
 }
 
-void Chunk::Render(Camera* camera)
+void Chunk::RenderSolid(Camera* camera)
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
 	m_meshRenderer.Render(camera);
+}
+
+void Chunk::RenderTransparent(Camera* camera)
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+	m_waterMeshRenderer.Render(camera);
 }
 
 void Chunk::RenderDebug(Camera* camera)

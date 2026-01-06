@@ -12,6 +12,8 @@ template <typename Vertex>
 class VertexBuffer;
 class ElementBuffer;
 
+struct Program;
+
 template <typename Vertex>
 class MeshRenderer;
 
@@ -30,9 +32,11 @@ struct RenderRequest
 	glm::mat4 m_matProjection;
 	glm::mat4 m_matView;
 
+	Program* m_program{ nullptr };
+
 	RENDER_MODE m_modeOverride{ RENDER_MODE::DEFAULT_MODE };
-	VertexBuffer<Vertex>* m_vbo;
-	ElementBuffer* m_ebo;
+	VertexBuffer<Vertex>* m_vbo{ nullptr };
+	ElementBuffer* m_ebo{ nullptr };
 	unsigned int m_vao;
 
 	RenderRequest(MeshRenderer<Vertex>* const meshRenderer, const Camera* const camera);

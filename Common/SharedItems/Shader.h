@@ -28,5 +28,5 @@ struct Shader
 	bool Compile();
 
 private:
-	static constexpr int PREVIEW_LENGTH{ 20 };
+	static constexpr int PREVIEW_LENGTH{ 200 };
 };

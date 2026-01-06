@@ -25,8 +25,7 @@ public:
 	Transform m_transform;
 	Renderer* m_rendererSystem{ nullptr };
 	RENDER_MODE m_mode{ DEFAULT_MODE };
-	Shader* m_vertShaderOverride{ nullptr };
-	Shader* m_fragShaderOverride{ nullptr };
+	Program* m_program{ nullptr };
 
 	MeshRenderer();
 	~MeshRenderer();
@@ -35,6 +34,7 @@ public:
 	MeshRenderer& operator=(const MeshRenderer& other) = delete;
 	MeshRenderer& operator=(MeshRenderer&& other) = delete;
 
+	void UseProgram(Program* program);
 	void UseRendererSystem(Renderer* renderer);
 	void UseMesh(Mesh<Vertex>* mesh);
 	void UpdateBuffers();

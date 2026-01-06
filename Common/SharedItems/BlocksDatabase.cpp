@@ -14,7 +14,8 @@ void BlocksDatabase::Init()
 
 	Register(Block::ID::Dirt, "Dirt", true)
 		->SimpleTexture(TextureAtlas::TextureID::Dirt)
-		->AffectedByGravity();
+		->AffectedByGravity()
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::Grass, "Grass", true)
 		->ContextualTexture([](const BlockData& block, const GeomContext& ctx)
@@ -54,11 +55,13 @@ void BlocksDatabase::Init()
 				block.DrawGridFace(ctx, TextureAtlas::TextureID::Dirt);
 				break;
 			}
-		});
+		})
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::Stone, "Stone", true)
 		->SimpleTexture(TextureAtlas::TextureID::Stone)
-		->AffectedByGravity();
+		->AffectedByGravity()
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::OakLog, "Oak log", true)
 		->ContextualTexture([](const BlockData& block, const GeomContext& ctx)
@@ -78,22 +81,27 @@ void BlocksDatabase::Init()
 					block.DrawGridFace(ctx, TextureAtlas::TextureID::OakLogTop);
 					break;
 				}
-			});
+			})
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::OakLeaves, "Oak leaves", true)
 		->SimpleTexture(TextureAtlas::TextureID::OakLeaves)
-		->Transparent();
+		->Transparent()
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::Sand, "Sand", true)
 		->SimpleTexture(TextureAtlas::TextureID::Sand)
-		->AffectedByGravity();
+		->AffectedByGravity()
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::Bedrock, "Bedrock", true)
-		->SimpleTexture(TextureAtlas::TextureID::Bedrock);
+		->SimpleTexture(TextureAtlas::TextureID::Bedrock)
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::Water, "Water", false)
 		->SimpleTexture(TextureAtlas::TextureID::Water)
-		->Transparent();
+		->Transparent()
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::FirLog, "Fir log", true)
 		->ContextualTexture([](const BlockData& block, const GeomContext& ctx)
@@ -113,15 +121,18 @@ void BlocksDatabase::Init()
 				block.DrawGridFace(ctx, TextureAtlas::TextureID::FirLogTop);
 				break;
 			}
-		});
+		})
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::FirLeaves, "Fir leaves", true)
 		->SimpleTexture(TextureAtlas::TextureID::FirLeaves)
-		->Transparent();
+		->Transparent()
+		->SetCollider(Collider::FullBlock());
 
 	Register(Block::ID::Lamp, "Lamp", true)
 		->SimpleTexture(TextureAtlas::TextureID::Lamp)
-		->LightSource(15);
+		->LightSource(15)
+		->SetCollider(Collider::FullBlock());
 }
 
 BlockData* BlocksDatabase::Register(Block::ID id, std::string name, bool isSolid)

@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include "glm/vec3.hpp"
 
+struct Collider;
+
 struct Block
 {
 	static constexpr Block* Invalid = nullptr;
@@ -85,4 +87,6 @@ struct Block
 	{
 		return (std::max(m_light, GetEmission()) << 4) | (m_skyExposure & 0xf);
 	}
+
+	Collider* GetCollider();
 };

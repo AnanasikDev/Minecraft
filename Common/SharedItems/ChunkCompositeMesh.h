@@ -18,19 +18,7 @@ struct ChunkCompositeMesh : public BaseCompositeMesh<Vertex>
 	const Block* At(const GeomContext& ctx, GridVec vec) const
 	{
 		glm::ivec3 v = GridVecToVec3(vec);
-		//const Block* result = ctx.request->chunk->AtSafe(ctx.localPos + v);
-		//if (result) return result;
 		return ctx.request->GetBlockAtWorld(ctx.globalPos + v);
-		/*Chunk* chunks[6]{ ctx.request->neighbourDown, ctx.request->neighbourUp, ctx.request->neighbourNorth, ctx.request->neighbourSouth, ctx.request->neighbourEast, ctx.request->neighbourWest };
-		for (Chunk*& chunk : chunks)
-		{
-			if (chunk)
-			{
-				result = chunk->AtGlobal(ctx.globalPos + v);
-				if (result) return result;
-			}
-		}
-		return nullptr;*/
 	}
 
 	/// <summary>
@@ -56,8 +44,18 @@ struct ChunkCompositeMesh : public BaseCompositeMesh<Vertex>
 	{
 		const Block* neighbour = At(ctx, ctx.vec);
 		const Block* self = GetBlock(ctx);
-		if (neighbour && BlockData::IsSolid(neighbour->GetID()) && !BlockData::IsTransparent(neighbour->GetID())) return;
+		const Block::ID selfID = self->GetID();
+		
 		if (!neighbour) return; // handling chunk borders when generating for first time
+		
+		const Block::ID neighID = neighbour->GetID();
+
+		bool skip{
+			(BlockData::IsSolid(neighID) && !BlockData::IsTransparent(neighID))
+			|| 
+			(BlockData::IsWater(selfID) && BlockData::IsWater(neighID))
+		};
+		if (skip) return;
 
 		unsigned char blockLightLevel{ 0 };
 		if (self->GetEmission() == 0 && neighbour)
