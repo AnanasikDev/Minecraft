@@ -4,7 +4,6 @@
 #include <optional>
 #include "Mesh.h"
 
-class IRenderable;
 class Game;
 class Camera;
 
@@ -37,7 +36,7 @@ struct RenderRequest
 	RENDER_MODE m_modeOverride{ RENDER_MODE::DEFAULT_MODE };
 	VertexBuffer<Vertex>* m_vbo{ nullptr };
 	ElementBuffer* m_ebo{ nullptr };
-	unsigned int m_vao;
+	unsigned int m_vao{ 0 };
 
 	RenderRequest(MeshRenderer<Vertex>* const meshRenderer, const Camera* const camera);
 };

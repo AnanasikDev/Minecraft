@@ -26,17 +26,17 @@ public:
 		glDeleteBuffers(1, &m_id);
 	}
 
-	void LinkExternal(std::vector<Vertex>* buffer, unsigned int initSize)
+	void LinkExternal(std::vector<Vertex>* buffer, size_t initSize)
 	{
 		m_bufferPtr = buffer;
 		Bind();
-		glBufferData(GL_ARRAY_BUFFER, initSize, m_bufferPtr->data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(initSize), m_bufferPtr->data(), GL_STATIC_DRAW);
 	}
 
-	void EditSubData(unsigned int shift, unsigned int size, void* data)
+	void EditSubData(unsigned int shift, size_t size, void* data)
 	{
 		Bind();
-		glBufferSubData(GL_ARRAY_BUFFER, shift, size, data);
+		glBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(shift), static_cast<GLsizeiptr>(size), data);
 	}
 
 	void Bind()
@@ -56,7 +56,7 @@ public:
 
 	inline int GetLength() const
 	{
-		return m_bufferPtr->size();
+		return static_cast<int>(m_bufferPtr->size());
 	}
 
 	inline Vertex* GetVertexData()

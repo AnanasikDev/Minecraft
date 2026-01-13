@@ -10,7 +10,7 @@ struct GeomContext;
 template <typename Vertex>
 struct BaseCompositeMesh
 {
-	Mesh<Vertex>* m_meshPtr;
+	Mesh<Vertex>* m_meshPtr{ nullptr };
 
 	inline void SetMesh(Mesh<Vertex>* const newptr)
 	{

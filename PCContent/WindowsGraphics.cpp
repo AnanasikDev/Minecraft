@@ -38,8 +38,8 @@ void WindowsGraphics::BeginFrame()
 	glfwPollEvents();
 
 	// (Your code calls glfwPollEvents())
-// ...
-// Start the Dear ImGui frame
+	// ...
+	// Start the Dear ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -48,7 +48,7 @@ void WindowsGraphics::BeginFrame()
 void WindowsGraphics::EndFrame()
 {
 	// Rendering
-// (Your code clears your framebuffer, renders your other stuff etc.)
+	// (Your code clears your framebuffer, renders your other stuff etc.)
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	// (Your code calls glfwSwapBuffers() etc.)
@@ -56,21 +56,18 @@ void WindowsGraphics::EndFrame()
 
 void WindowsGraphics::InitGUI()
 {
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  
 
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplGlfw_InitForOpenGL(window, true); 
 	ImGui_ImplOpenGL3_Init("#version 100");
 }
 
 WindowsGraphics::WindowsGraphics()
 {
-	// Initialize GLFW and set window properties.
 	glfwInit();
 	glfwWindowHint(GL_DEPTH_BUFFER_BIT, 16);
 	glfwWindowHint(GL_DEPTH_BITS, 16);
@@ -79,21 +76,15 @@ WindowsGraphics::WindowsGraphics()
 //	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // for normal opengl
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 //	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
-	// Creates the window.
-	window = glfwCreateWindow(Game::WINDOW_WIDTH, Game::WINDOW_HEIGHT, "PC Based OpenGLES", NULL, NULL);
+	window = glfwCreateWindow(Game::WINDOW_WIDTH, Game::WINDOW_HEIGHT, "Minecraft 3000", NULL, NULL);
 
-	// Error handling for if window creation failed.
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window!" << std::endl;
 		glfwTerminate();
 	}
-
-	// Set the window to be the current context.
 	glfwMakeContextCurrent(window);
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// Error handling for if GLAD failed to initialize.
 	if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD!" << std::endl;
@@ -106,4 +97,5 @@ void WindowsGraphics::Quit()
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 	glfwDestroyWindow(window);
+	glfwTerminate();
 }

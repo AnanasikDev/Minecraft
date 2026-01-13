@@ -466,13 +466,13 @@ private:
 
     static float PingPong(float t)
     {
-        t -= (int)(t * 0.5f) * 2;
-        return t < 1 ? t : 2 - t;
+        t -= (int)(t * 0.5f) * 2.0f;
+        return t < 1.0f ? t : 2.0f - t;
     }
 
     void CalculateFractalBounding()
     {
-        float gain = FastAbs(mGain);
+        const float gain = FastAbs(mGain);
         float amp = gain;
         float ampFractal = 1.0f;
         for (int i = 1; i < mOctaves; i++)

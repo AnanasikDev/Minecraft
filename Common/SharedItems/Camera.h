@@ -15,7 +15,6 @@ struct Frustum
 
 	Frustum() = default;
 	Frustum(float fov, glm::vec2 screen, float near, float far);
-	int ContainsAaBox(const AABB2D& refBox) const;
 };
 
 class Camera : public Gameobject
@@ -26,6 +25,8 @@ private:
 	float m_sense;
 
 public:
+	static float FOV_MULT;
+
 	Camera() = default;
 	Camera(Game* game, const Frustum& frustum, const Transform& transform, float sense);
 	~Camera() = default;

@@ -11,14 +11,17 @@ template <typename Vertex>
 struct BaseCompositeMesh;
 class World;
 
+/// <summary>
+/// POD for storing intermediate data for block mesh generation
+/// </summary>
 struct GeomContext
 {
 	glm::ivec3 localPos;
 	glm::ivec3 globalPos;
 	GridVec vec;
-	World* const world;
-	RemeshRequest* const request;
-	BaseCompositeMesh<FVertex>* mesh;
+	World* const world{ nullptr };
+	RemeshRequest* const request{ nullptr };
+	BaseCompositeMesh<FVertex>* mesh{ nullptr };
 
 	GeomContext(const glm::ivec3& localPos, const glm::ivec3& globalPos, const GridVec& vec, World* world, RemeshRequest* request, BaseCompositeMesh<FVertex>* mesh)
 		: localPos(localPos), globalPos(globalPos), vec(vec), world(world), request(request), mesh(mesh)

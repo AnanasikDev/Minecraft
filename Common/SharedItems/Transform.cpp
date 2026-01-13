@@ -227,3 +227,15 @@ glm::vec3 Transform::GetWorldUp() const
     glm::quat worldRotation = GetWorldRotation();
     return glm::rotate(worldRotation, glm::vec3(0.0f, 1.0f, 0.0f));
 }
+
+void Transform::SetLocalEulerAngles(glm::vec3 eulerDegrees)
+{
+    m_localRotation = glm::quat(glm::radians(eulerDegrees));
+    m_isLocalDirty = true;
+    MarkDirty();
+}
+
+glm::vec3 Transform::GetLocalEulerAngles() const
+{
+    return glm::degrees(glm::eulerAngles(m_localRotation));
+}

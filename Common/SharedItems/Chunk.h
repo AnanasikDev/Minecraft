@@ -9,7 +9,6 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-#include "IRenderable.h"
 #include "Vertex.h"
 #include "Mesh.h"
 #include "BlockData.h"
@@ -45,6 +44,8 @@ public:
 	std::atomic<int> m_controls{ 0 };
 	std::atomic<bool> m_isDiscarded{ false };
 	std::atomic<bool> m_isReadable{ false };
+	std::atomic<bool> m_isCustom{ false };
+	std::atomic<bool> m_isSaving{ false };
 
 	std::unique_ptr<std::array<Block, XWIDTH * YHEIGHT * ZDEPTH>> m_blocks;
 	Block* AtForce(glm::ivec3 pos);
@@ -73,6 +74,11 @@ public:
 
 	StructureData* AddStructure(StructureData data);
 	std::vector<StructureData>& GetStructures();
+
+	inline bool ShouldSave() const
+	{
+		return m_isCustom;
+	}
 
 private:
 	static int SGUID;

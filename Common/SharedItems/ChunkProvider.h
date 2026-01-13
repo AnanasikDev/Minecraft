@@ -4,8 +4,9 @@
 
 enum class ProviderType { World, Request };
 class World;
-class RemeshRequest;
+struct RemeshRequest;
 class Chunk;
+struct Block;
 
 struct ChunkProvider
 {

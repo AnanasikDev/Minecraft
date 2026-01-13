@@ -4,6 +4,7 @@
 
 void RemeshRequest::SetControl()
 {
+	if (chunk)	chunk->m_controls++;
 	if (neighbourNorth)	neighbourNorth->m_controls++;
 	if (neighbourSouth)	neighbourSouth->m_controls++;
 	if (neighbourUp)	neighbourUp->m_controls++;
@@ -14,6 +15,7 @@ void RemeshRequest::SetControl()
 
 void RemeshRequest::ResetControl()
 {
+	if (chunk)	chunk->m_controls--;
 	if (neighbourNorth)	neighbourNorth->m_controls--;
 	if (neighbourSouth)	neighbourSouth->m_controls--;
 	if (neighbourUp)	neighbourUp->m_controls--;

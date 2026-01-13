@@ -6,7 +6,7 @@
 #include "RendererHelper.h"
 #include "BlockData.h"
 
-struct Chunk;
+class Chunk;
 struct RemeshRequest;
 
 template <typename Vertex>
@@ -42,15 +42,15 @@ struct ChunkCompositeMesh : public BaseCompositeMesh<Vertex>
 
 	void AddBlockFace(const GeomContext& ctx, TextureAtlas::TextureID texid)
 	{
-		const Block* neighbour = At(ctx, ctx.vec);
-		const Block* self = GetBlock(ctx);
-		const Block::ID selfID = self->GetID();
+		const Block* const neighbour { At(ctx, ctx.vec) };
+		const Block* const self		 { GetBlock(ctx) };
+		const Block::ID selfID		 { self->GetID() };
 		
 		if (!neighbour) return; // handling chunk borders when generating for first time
 		
-		const Block::ID neighID = neighbour->GetID();
+		const Block::ID neighID{ neighbour->GetID() };
 
-		bool skip{
+		const bool skip{
 			(BlockData::IsSolid(neighID) && !BlockData::IsTransparent(neighID))
 			|| 
 			(BlockData::IsWater(selfID) && BlockData::IsWater(neighID))

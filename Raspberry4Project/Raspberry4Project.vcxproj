@@ -52,6 +52,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <IncludePath>/usr/include/aarch64-linux-gnu/c++/12;/usr/include;/usr/include/bullet;/usr/include/glm;../Common;../Raspberry;$(IncludePath);/usr/include/glm</IncludePath>
     <LibraryPath>/usr/lib/aarch64-linux-gnueabihf</LibraryPath>
+    <OutDir>$(ProjectDir)bin</OutDir>
+    <IntDir>$(ProjectDir)obj</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <IncludePath>/usr/include/aarch64-linux-gnu/c++/12;/usr/include;/usr/include/bullet;/home/pi/glm;../Common;../Raspberry;/home/pi/stb;$(IncludePath);/usr/include/glm</IncludePath>
@@ -117,6 +119,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>/usr/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CppLanguageStandard>c++17</CppLanguageStandard>
+      <PreprocessorDefinitions>NDEBUG;Raspberry_BUILD;GLES3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">

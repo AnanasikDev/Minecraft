@@ -9,10 +9,10 @@ struct Program;
 
 struct Shader
 {
-	Program* m_program = nullptr;
+	Program* m_program{ nullptr };
 	std::string m_source = "";
-	const char* m_compiledSource = nullptr;
-	GLuint id = 0;
+	const char* m_compiledSource{ nullptr };
+	GLuint id{ 0 };
 
 	enum class Type
 	{

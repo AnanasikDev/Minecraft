@@ -9,7 +9,6 @@
 #include "Program.h"
 #include "Game.h"
 #include "Camera.h"
-#include "IRenderable.h"
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
 #include "Renderer.h"

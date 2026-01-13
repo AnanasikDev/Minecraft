@@ -17,6 +17,7 @@
     <ClCompile Include="..\Common\ImGui-master\backends\imgui_impl_x11.cpp">
       <Filter>LibsAndInterfaces</Filter>
     </ClCompile>
+    <ClCompile Include="LinuxAssetManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">
@@ -54,6 +55,7 @@
     <ClInclude Include="..\Common\FastNoiseLite\FastNoiseLite.h">
       <Filter>LibsAndInterfaces</Filter>
     </ClInclude>
+    <ClInclude Include="LinuxAssetManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\setup.sh">

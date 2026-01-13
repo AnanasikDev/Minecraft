@@ -13,6 +13,6 @@ public:
 	IMouse& GetMouse();
 
 private:
-	IMouse* const mouse;
-	IKeyboard* const keyboard;
+	IMouse* const m_mouse;
+	IKeyboard* const m_keyboard;
 };

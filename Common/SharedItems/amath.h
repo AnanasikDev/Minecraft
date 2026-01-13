@@ -48,9 +48,14 @@ public:
 		return length - std::fabsf(mod - length);
 	}
 
-	static inline bool RreNearlyEqual(float a, float b, float epsilon = 10e-6)
+	static inline bool RreNearlyEqual(float a, float b, float epsilon = 10e-6f)
 	{
 		return std::abs(a - b) <= epsilon;
+	}
+
+	static inline glm::vec3 CastFloat(glm::ivec3 ivec)
+	{
+		return glm::vec3(static_cast<float>(ivec.x), static_cast<float>(ivec.y), static_cast<float>(ivec.z));
 	}
 };
 

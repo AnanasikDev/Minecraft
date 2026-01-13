@@ -1,7 +1,7 @@
 #pragma once
+
 #include "glm/vec3.hpp"
 #include "glm/glm.hpp"
-
 
 struct Ray
 {
@@ -15,7 +15,7 @@ struct Ray
 };
 
 struct Block;
-struct Chunk;
+class Chunk;
 
 struct RaycastResult
 {

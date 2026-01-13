@@ -21,7 +21,7 @@ struct BaseVertex
 		z += dz;
 	}
 
-	static constexpr inline unsigned int GetStride() 
+	static constexpr inline size_t GetStride() 
 	{ 
 		return sizeof(Txyz) * 3;
 	}
@@ -43,7 +43,7 @@ struct ModelVertex : public BaseVertex<Txyz>
 	{
 	}
 
-	static constexpr inline unsigned int GetStride()
+	static constexpr inline size_t GetStride()
 	{
 		return sizeof(ModelVertex<Txyz, Tuv, Tlight>);
 	}
@@ -67,7 +67,7 @@ struct BaseSpriteVertex : public BaseVertex<Txyz>
 	{
 	}
 
-	static constexpr inline unsigned int GetStride()
+	static constexpr inline size_t GetStride()
 	{
 		return sizeof(BaseSpriteVertex<Txyz, Tuv, Ttexid>);
 	}

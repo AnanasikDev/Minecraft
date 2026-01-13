@@ -162,6 +162,8 @@ void LightManager::GenerateSkyExposure(RemeshRequest& request)
 
 void LightManager::PropagateLight(LightSource src, ChunkProvider chunkProvider, char step)
 {
+	if (src.m_emission == 0) return;
+
 	static std::vector<std::pair<glm::ivec3, unsigned char>> queue;
 	queue.reserve(BFS_QUEUE_CAPACITY);
 	BaseBFS(queue, src, step, NeighbourMode::CloseXYZ, true, chunkProvider, [](BFSIter& it)
@@ -176,6 +178,13 @@ void LightManager::PropagateLight(LightSource src, ChunkProvider chunkProvider, 
 		[src](Block* block)
 		{
 			block->SetLightLevel(src.m_emission);
+		},
+		[](fdirtyChunks& dirtyChunks)
+		{
+			for (auto chunk : dirtyChunks)
+			{
+				chunk->m_isCustom = true;
+			}
 		});
 }
 
@@ -185,7 +194,6 @@ void LightManager::PropagateDarkness(LightSource src, ChunkProvider chunkProvide
 	queue.reserve(BFS_QUEUE_CAPACITY);
 	BaseBFS(queue, src, step, NeighbourMode::CloseXYZ, true, chunkProvider, [&, step](BFSIter& it)
 		{
-			bool isNextEmitter{ it.block->IsLightEmitter() };
 			unsigned char nextLight{ std::max(it.block->GetLightLevel(), it.block->GetEmission()) };
 			if (it.blockdata->IsLightable() && nextLight != MIN_LIGHT)
 			{
@@ -400,7 +408,7 @@ void LightManager::BaseBFS(fqueue& queue, LightSource src, char step, NeighbourM
 
 		if (currentLight <= -step) continue;
 
-		for (int i = 0; i < length; i++)
+		for (size_t i = 0; i < length; i++)
 		{
 			glm::ivec3 shift = shifts[i];
 			nextpos = pos + shift;
@@ -433,7 +441,10 @@ void LightManager::BaseBFS(fqueue& queue, LightSource src, char step, NeighbourM
 			IterAns ans{ iterate(inp) };
 			if (ans == IterAns::SpreadFurther)
 			{
-				queue.push_back(std::make_pair(nextpos, inp.targetvalue));
+				if (inp.targetvalue <= MAX_LIGHT)
+				{
+					queue.push_back(std::make_pair(nextpos, inp.targetvalue));
+				}
 			}
 		}
 	}
@@ -459,7 +470,6 @@ void LightManager::RegenerateEmitters(fdirtyChunks& dirtyChunks, LightSource src
 	Chunk* localChunk{ nullptr };
 
 	Block::ID blockid{ Block::ID::Stone };
-	BlockData* blockdata{ BlocksDatabase::Get(blockid) };
 	Block* b{ nullptr };
 	glm::ivec3 nextpos;
 	glm::ivec3 nextChunkGridPos;
@@ -489,7 +499,6 @@ void LightManager::RegenerateEmitters(fdirtyChunks& dirtyChunks, LightSource src
 		if (blockid != b->GetID())
 		{
 			blockid = b->GetID();
-			blockdata = b->GetData();
 		}
 		if (b->IsLightEmitter())	
 		{

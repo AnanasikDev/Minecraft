@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <glm/vec3.hpp>
-
 #include "StructureGenerator.h"
 #include "PerlinNoise.hpp"
 #include "RemeshRequest.h"
@@ -22,7 +21,6 @@ struct BlockGenData
 	float caveness{ 0 };
 	float noiseBase{ 0 };
 	float noiseMountains{ 0 };
-
 	float temperature{ 0 };
 	float humidity{ 0 };
 	Biom biom{ Biom::Forest };
@@ -82,4 +80,9 @@ private:
 	siv::PerlinNoise::seed_type m_seed{ 123456u };
 	siv::PerlinNoise m_perlin{ m_seed };
 	std::vector<StructureGenerator> m_structureGenerators;
+
+	float Noise2D_Positive(glm::vec2 pos, glm::vec2 scale, glm::vec2 shift = glm::vec2(0.0f));
+	float Noise3D_Positive(glm::vec3 pos, glm::vec3 scale, glm::vec3 shift = glm::vec3(0.0f));
+	float Noise2D_Normalized(glm::vec2 pos, glm::vec2 scale, glm::vec2 shift = glm::vec2(0.0f));
+	float Noise3D_Normalized(glm::vec3 pos, glm::vec3 scale, glm::vec3 shift = glm::vec3(0.0f));
 };

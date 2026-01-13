@@ -26,6 +26,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_textedit.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\ImGui-master\imstb_truetype.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\Input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\json.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\PerlinNoise.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\stb_image\stb_image.h">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
@@ -52,17 +53,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)commons.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BaseDebug.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CompositeMesh.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Console.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConsoleBackend.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ElementBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Entity.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Face.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gameobject.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Gamerules.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GeomContext.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Gizmos.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)glh.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ChunkProvider.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)IPoolable.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)IRenderable.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Health.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Healthbar.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hotbar.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Interaction.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Item.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LightManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LightSource.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Mesh.h" />
@@ -77,12 +82,15 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)RendererHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RenderRequest.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SafeQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Saver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Shader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)StructureData.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)StructureGenerator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Sunmoon.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TextureAtlas.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Transform.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)UI.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)UIElement.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Vertex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)VertexBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)World.h" />
@@ -109,14 +117,28 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ChunkProvider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Collider.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)commons.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Console.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ElementBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Gameobject.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Gizmos.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Health.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Healthbar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Hotbar.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Item.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)LightManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Mesh.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)OpenGLDebug.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Player.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Program.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Program.cpp">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Random.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Ray.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RemeshRequest.cpp" />
@@ -124,10 +146,13 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Renderer.tpp">
       <FileType>Document</FileType>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Saver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Shader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Sunmoon.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)TextureAtlas.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Transform.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)UI.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)UIElement.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)World.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WorldGen.cpp" />
   </ItemGroup>
@@ -164,6 +189,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</DeploymentContent>
     </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\hearts.png" />
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\hotbar.png" />
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\hotbar_selector.png" />
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\items.png" />
     <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\sunmoon.png" />
   </ItemGroup>
 </Project>

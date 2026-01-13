@@ -20,6 +20,9 @@ public:
 	void Move();
 
 private:
+	constexpr static float DISTANCE{ 250.0f };
+	constexpr static float SIZE{ 15.0f };
+
 	std::unique_ptr<TextureAtlas> m_atlas;
 	Game* m_game{ nullptr };
 	MeshRenderer<SpriteVertex> m_sun;
@@ -27,6 +30,4 @@ private:
 	MeshRenderer<SpriteVertex> m_moon;
 	glm::vec3 m_baseDirection{ 1, 0, 1 };
 	glm::vec3 m_axis{ -1, 0, 1 };
-	constexpr static float DISTANCE{ 250.0f };
-	constexpr static float SIZE{ 15.0f };
 };

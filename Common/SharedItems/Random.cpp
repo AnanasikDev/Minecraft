@@ -30,7 +30,7 @@ float Random::GetFloat2D(float x, float y)
 
 int Random::GetInt2D(int x, int y, int minIncluding, int maxExcluding)
 {
-	return static_cast<int>(AMath::Remap(Random::GetFloat2D(x, y), 0.0f, 1.0f, minIncluding, maxExcluding));
+	return static_cast<int>(AMath::Remap(Random::GetFloat2D(static_cast<float>(x), static_cast<float>(y)), 0.0f, 1.0f, static_cast<float>(minIncluding), static_cast<float>(maxExcluding)));
 }
 
 float Random::GetFloat(float min, float max)

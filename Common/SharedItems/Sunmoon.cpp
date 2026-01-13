@@ -15,7 +15,7 @@ void Sunmoon::Init(Game* game)
 {
 	m_game = game;
 	m_atlas = std::make_unique<TextureAtlas>();
-	m_atlas->Create(m_game->m_assetManager->GetAssetPathString("Textures/sunmoon.png"), GL_REPEAT, 32);
+	m_atlas->Create3D(m_game->m_assetManager->GetAssetPathString("Textures/sunmoon.png"), GL_REPEAT, 32);
 
 	m_axis = glm::normalize(m_axis);
 	m_baseDirection = glm::normalize(m_baseDirection);

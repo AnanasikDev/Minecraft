@@ -2,7 +2,6 @@
 
 Collider::Collider(std::vector<AABB3D> boxes)
 {
-	//std::copy(boxes.begin(), boxes.end(), m_boxes.begin());
     m_boxes = boxes;
 }
 

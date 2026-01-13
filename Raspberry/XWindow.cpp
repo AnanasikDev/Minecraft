@@ -29,7 +29,11 @@ void XWindow::CreateWindow()
 	EGLint majorVersion;
 	EGLint minorVersion;
 
-	swa.event_mask = ExposureMask | PointerMotionMask | KeyPressMask | KeyReleaseMask;
+	swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
+		ButtonPressMask | ButtonReleaseMask |
+		PointerMotionMask |                  
+		StructureNotifyMask |                
+		FocusChangeMask;
 	swa.background_pixmap = None;
 	swa.background_pixel = 0;
 	swa.border_pixel = 0;
@@ -49,7 +53,7 @@ void XWindow::CreateWindow()
 		CWEventMask,
 		&swa);
 
-	XSelectInput(display, window, KeyPressMask | KeyReleaseMask);
+	XSelectInput(display, window, swa.event_mask);
 	xattr.override_redirect = false;
 	XChangeWindowAttributes(display, window, CWOverrideRedirect, &xattr);
 

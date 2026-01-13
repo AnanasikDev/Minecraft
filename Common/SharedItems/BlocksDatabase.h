@@ -7,14 +7,16 @@
 #include "BlockData.h"
 #include "Block.h"
 
+class Game;
+
 class BlocksDatabase
 {
 private:
 	static std::vector<BlockData> m_datas;
-	//static std::unordered_map<Block::ID, BlockData> m_datas;
-public:
+	static Game* m_game;
 
-	static void Init();
+public:
+	static void Init(Game* game);
 	static BlockData* Register(Block::ID id, std::string name, bool isSolid);
 	static BlockData* Get(Block::ID id);
 };

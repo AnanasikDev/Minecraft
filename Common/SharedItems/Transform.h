@@ -10,6 +10,10 @@
 class Transform
 {
 public:
+    using Rotation = glm::quat;
+    using Position = glm::vec3;
+    using Scale = glm::vec3;
+
     Transform();
     ~Transform();
 
@@ -47,19 +51,22 @@ public:
     glm::vec3 GetWorldRight() const;
     glm::vec3 GetWorldUp() const;
 
+    void SetLocalEulerAngles(glm::vec3 eulerDegrees);
+    glm::vec3 GetLocalEulerAngles() const;
+
 private:
     void MarkDirty();
 
-    Transform* m_parent = nullptr;
+    Transform* m_parent{ nullptr };
     std::vector<Transform*> m_children;
 
-    glm::vec3 m_localPosition = glm::vec3(0.0f);
-    glm::quat m_localRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    glm::vec3 m_localScale = glm::vec3(1.0f);
+    glm::vec3 m_localPosition{ 0.0f };
+    glm::quat m_localRotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_localScale{ 1.0f };
 
-    mutable glm::mat4 m_localMatrix = glm::mat4(1.0f);
-    mutable glm::mat4 m_worldMatrix = glm::mat4(1.0f);
+    mutable glm::mat4 m_localMatrix{ 1.0f };
+    mutable glm::mat4 m_worldMatrix{ 1.0f };
 
-    mutable bool m_isLocalDirty = true;
-    mutable bool m_isWorldDirty = true;
+    mutable bool m_isLocalDirty{ true };
+    mutable bool m_isWorldDirty{ true };
 };

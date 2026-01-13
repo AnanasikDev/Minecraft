@@ -7,8 +7,8 @@ class Game;
 class Gameobject
 {
 public:
-	Transform m_transform;
 	Game* m_game{ nullptr };
+	Transform m_transform;
 
 	Gameobject() = default;
 	Gameobject(Game* game) : m_game(game)

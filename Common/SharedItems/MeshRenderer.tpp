@@ -53,7 +53,6 @@ void MeshRenderer<Vertex>::UpdateBuffers()
 
 	m_vbo.LinkExternal(&m_mesh->GetVertices(), m_mesh->GetVerticesCount() * Vertex::GetStride());
 	m_ebo.LinkExternal(&m_mesh->GetIndices(), m_mesh->GetIndicesCount() * sizeof(unsigned int));
-	GLenum err;
 
 	END_ERROR_CAPTURE();
 

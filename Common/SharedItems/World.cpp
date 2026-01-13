@@ -16,7 +16,7 @@ World::~World()
 	if (m_isRunning)
 	{
 		m_isRunning = false;
-		for (int i = 0; i < m_workerThreads.size(); i++)
+		for (size_t i = 0; i < m_workerThreads.size(); i++)
 		{
 			if (m_workerThreads[i].joinable())
 			{
@@ -48,6 +48,21 @@ void World::Init(Game* game)
 	}
 }
 
+void World::OnQuit()
+{
+	{
+		std::unique_lock<std::mutex> lock(m_chunksMutex);
+		for (std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
+		{
+			const Chunk* const chunk{ it->second.get() };
+			if (chunk->ShouldSave())
+			{
+				m_game->m_saver.SaveChunk(chunk);
+			}
+		}
+	}
+}
+
 void World::SetGenerator(std::unique_ptr<WorldGen> worldgen)
 {
 	m_generator = std::move(worldgen);
@@ -63,21 +78,22 @@ bool World::ShouldGenerate(glm::ivec3 chunkPos, glm::ivec3 playerChunkPos)
 	const float distance{ glm::length(glm::vec3(chunkPos.x - playerChunkPos.x, 0, chunkPos.z - playerChunkPos.z)) };
 
 	const bool isInRange{
-		distance < GENERATION_DISTANCE
+		distance < static_cast<float>(m_generationDistance)
 	};
 	bool isInFrustum{ m_game->m_player->m_camera->IsInFrustum(glm::vec3(chunkPos.x * Chunk::XWIDTH, chunkPos.y * Chunk::YHEIGHT, chunkPos.z * Chunk::ZDEPTH), false) };
-	return isInRange && isInFrustum || distance < 2;
+	return (isInRange && isInFrustum) || distance < 2.0f;
 }
 
 void World::Update()
 {
+	m_generationDistance = m_game->GetGamerules().m_generationDistance;
 	const glm::ivec3 chunkPos{ World::WorldBlockToChunkGrid(m_game->m_player->m_transform.GetWorldPosition()) };
 	{
 		std::lock_guard<std::mutex> mapLock(m_chunksMutex);
 		int x = 0, z = 0;
 		int dx = 0, dz = -1;
 
-		int maxChunks = (2 * GENERATION_DISTANCE + 1) * (2 * GENERATION_DISTANCE + 1);
+		int maxChunks = (2 * m_generationDistance + 1) * (2 * m_generationDistance + 1);
 
 		for (int i = 0; i < maxChunks; i++)
 		{
@@ -92,9 +108,9 @@ void World::Update()
 					chunk = GetChunkAt(check);
 					InitGenerate(chunk);
 				}
-				if (chunk->m_isDirty)
+				if (chunk->m_isDirty && !chunk->m_isGenerating)
 				{
-					Regenerate(chunk);
+					GenerateMesh(chunk);
 				}
 			}
 
@@ -131,29 +147,37 @@ RemeshRequest World::MakeRequest(Chunk* chunk)
 void World::InitGenerate(Chunk* chunk)
 {
 	chunk->m_isDirty = false;
-	chunk->m_isGenerating = true;
 
-	m_toGenerateQueue.push(MakeRequest(chunk));
+	m_toGenerateQueue.pushBack(MakeRequest(chunk));
 }
 
-void World::Regenerate(Chunk* chunk)
+void World::GenerateMesh(Chunk* chunk)
 {
 	chunk->m_isDirty = false;
-	chunk->m_isGenerating = true;
 
-	m_toMeshQueue.push(MakeRequest(chunk));
+	m_toMeshQueue.pushBack(MakeRequest(chunk));
 }
 
 void World::GenerateChunkGrid(RemeshRequest& request)
 {
-	m_generator->GenerateChunkGrid(request);
-	m_lightManager.GenerateSkyExposure(request);
+	assert(request.chunk);
+	
+	if (request.chunk->m_isSaving) return;
+
+	request.chunk->m_isGenerating = true;
+	if (!m_game->m_saver.LoadChunk(request.chunk))
+	{
+		m_generator->GenerateChunkGrid(request);
+		m_lightManager.GenerateSkyExposure(request);
+	}
+	request.chunk->m_isGenerating = false;
+	request.chunk->m_isReadable = true;
 }
 
 RaycastResult World::Raycast(Ray ray)
 {
-	static constexpr float backstep{ 0.085f };
-	static constexpr float step{ 0.15f };
+	static constexpr float backstep{ 0.04f };
+	static constexpr float step{ 0.075f };
 	RaycastResult hit{ SimpleRaycast(ray, step, false) };
 	RaycastResult ret{ SimpleRaycast(Ray(hit.m_worldPos, hit.m_worldPos - ray.Direction() * 2.0f), backstep, true)};
 	glm::ivec3 normal{ ret.m_worldBlockPos - hit.m_worldBlockPos };
@@ -178,8 +202,9 @@ RaycastResult World::SimpleRaycast(Ray ray, float step, bool invert)
 
 		glm::ivec3 local{ chunk->WorldToLocal(gridCheck) };
 		Block* const block{ chunk->AtSafe(local) };
-		if ( (block && BlockData::IsSolid(block->GetID()) && !invert) || 
-			(!block || !BlockData::IsSolid(block->GetID()) && invert))
+		const bool isSolidHit{ block && BlockData::IsSolid(block->GetID()) && !invert };
+		const bool isOtherHit{ !block || (!BlockData::IsSolid(block->GetID()) && invert) };
+		if (isSolidHit || isOtherHit)
 		{
 			RaycastResult result(block, gridCheck, check, chunk, glm::ivec3(0, 0, 0));
 			return result;
@@ -224,15 +249,21 @@ void World::FixedUpdate()
 {
 	std::lock_guard<std::mutex> mapLock(m_chunksMutex);
 	std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it;
-	glm::ivec3 playerChunk = World::WorldBlockToChunkGrid(m_game->m_player->m_transform.GetWorldPosition());
-	for (it = m_chunks.begin(); it != m_chunks.end();)
+	const glm::ivec3 playerChunk{ World::WorldBlockToChunkGrid(m_game->m_player->m_transform.GetLocalPosition()) };
+	for (it = m_chunks.begin(); it != m_chunks.end(); /*custom*/)
 	{
-		glm::ivec3 gridpos = it->first;
-		Chunk* chunk = it->second.get();
+		const glm::ivec3 gridpos{ it->first };
+		Chunk* const chunk{ it->second.get() };
 		const float distance{ glm::length(glm::vec3(gridpos) - glm::vec3(playerChunk)) };
-		if ((distance > GENERATION_DISTANCE * 1.25f && chunk->m_isReadyForRender && chunk->m_isGenerating == false || chunk->m_isDiscarded) && chunk->m_controls == 0)
+		if ((distance > static_cast<float>(m_generationDistance) * DELETION_DISTANCE_FACTOR && chunk->m_isGenerating == false || chunk->m_isDiscarded) && chunk->m_controls == 0 && !chunk->m_isSaving)
 		{
 			chunk->m_isReadyForRender = false;
+			if (chunk->m_isCustom)
+			{
+				chunk->m_isSaving = true;
+				m_game->m_saver.SaveChunk(chunk);
+				chunk->m_isSaving = false;
+			}
 			it = m_chunks.erase(it);
 		}
 		else
@@ -252,6 +283,7 @@ void World::AsyncUpdate()
 			if (!ShouldGenerate(request.chunk->m_position, WorldBlockToChunkGrid(m_game->m_player->m_transform.GetWorldPosition())))
 			{
 				request.chunk->m_isDiscarded = true;
+				request.chunk->m_isGenerating = false;
 				request.ResetControl();
 			}
 			else
@@ -264,6 +296,7 @@ void World::AsyncUpdate()
 			if (!ShouldGenerate(request.chunk->m_position, WorldBlockToChunkGrid(m_game->m_player->m_transform.GetWorldPosition())))
 			{
 				request.chunk->m_isDiscarded = true;
+				request.chunk->m_isGenerating = false;
 				request.ResetControl();
 			}
 			else
@@ -278,6 +311,7 @@ void World::AsyncUpdate()
 void World::GenerateChunk(RemeshRequest& request)
 {
 	Chunk* chunk{ request.chunk };
+	chunk->m_isGenerating = true;
 	{
 		std::lock_guard<std::mutex> lock(chunk->m_mtx);
 		if (chunk->m_version == 0)
@@ -293,6 +327,14 @@ void World::GenerateChunk(RemeshRequest& request)
 void World::MeshChunk(RemeshRequest& request)
 {
 	Chunk* chunk{ request.chunk };
+
+	if (request.chunk->m_isSaving)
+	{
+		request.ResetControl();
+		return;
+	}
+
+	chunk->m_isGenerating = true;
 	bool pushToGpu{ false };
 	{
 		std::lock_guard<std::mutex> lock(chunk->m_mtx);
@@ -319,15 +361,20 @@ void World::MeshChunk(RemeshRequest& request)
 				}
 			}
 		}
-		else
+		request.ResetControl();
+		if (!pushToGpu)
 		{
+			chunk->m_isGenerating = false;
 			chunk->m_isDirty = true;
 		}
 	}
-	request.ResetControl();
 	if (pushToGpu)
 	{
-		m_toUpdateGPUBuffersQueue.push(chunk);
+		m_toUpdateGPUBuffersQueue.pushBack(chunk);
+	}
+	else
+	{
+		chunk->m_isGenerating = false;
 	}
 }
 
@@ -348,31 +395,44 @@ void World::Render(Player* player)
 	m_atlas->Use();
 	{
 		std::lock_guard<std::mutex> mapLock(m_chunksMutex);
-		CHUNKS_RENDERED = 0;
-		CHUNKS_ACTIVE = 0;
+		m_chunksRendered = 0;
+		m_chunksActive = 0;
 		std::vector<Chunk*> toRender;
 		for (std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
 		{
-			if (!it->second) continue;
+			Chunk* chunk = it->second.get();
+			if (!chunk) continue;
 
-			CHUNKS_ACTIVE++;
+			m_chunksActive++;
 			
-			if (it->second && it->second->m_isReadyForRender)
+			if (chunk->m_isReadyForRender)
 			{
-				glm::vec3 pos{ World::ChunkGridToWorldBlock(it->second->m_position) };
-				std::array<glm::ivec3, 8> corners = Chunk::GetCorners(it->second->m_position);
-				bool isInFrustum{ false };
-				for (int i = 0; i < 8; i++)
+				glm::vec3 pos{ World::ChunkGridToWorldBlock(chunk->m_position) };
+				std::array<glm::ivec3, 8> corners = Chunk::GetCorners(chunk->m_position);
+				bool shouldRender{ true };
+				if (m_game->GetGamerules().m_enableFrustumCulling)
 				{
-					glm::ivec3 c = corners[i];
-					c.y = player->m_transform.GetWorldPosition().y;
-					isInFrustum |= player->m_camera->IsInFrustum(c, false, -player->m_transform.GetLocalForward() * 10.0f);
+					bool isInFrustum{ false };
+					for (int i = 0; i < 8; i++)
+					{
+						glm::ivec3 ipos = corners[i];
+						glm::vec3 fpos = glm::vec3(static_cast<float>(ipos.x), static_cast<float>(ipos.y), static_cast<float>(ipos.z));
+						fpos.y = player->m_transform.GetWorldPosition().y;
+						isInFrustum |= player->m_camera->IsInFrustum(fpos, false, -player->m_transform.GetLocalForward() * 30.0f);
+						if (isInFrustum) break;
+					}
+					shouldRender = isInFrustum;
 				}
-				if (isInFrustum && it->second)
+
+				if (shouldRender)
 				{
-					toRender.push_back(it->second.get());
-					CHUNKS_RENDERED++;
+					toRender.push_back(chunk);
+					m_chunksRendered++;
 				}
+			}
+			if (BaseDebug::show && chunk->m_isReadable)
+			{
+				chunk->RenderDebug(player->m_camera.get());
 			}
 		}
 
@@ -381,19 +441,25 @@ void World::Render(Player* player)
 			Chunk* chunk{ *it };
 			chunk->RenderSolid(player->m_camera.get());
 		}
-		for (std::vector<Chunk*>::iterator it = toRender.begin(); it != toRender.end(); ++it)
+
+		if (m_game->GetGamerules().m_renderWater)
 		{
-			Chunk* chunk{ *it };
-			chunk->RenderTransparent(player->m_camera.get());
+			for (std::vector<Chunk*>::iterator it = toRender.begin(); it != toRender.end(); ++it)
+			{
+				Chunk* chunk{ *it };
+				if (chunk->m_waterMesh.IsEmpty()) continue;
+
+				chunk->RenderTransparent(player->m_camera.get());
+			}
 		}
-		if (BaseDebug::show)
+		/*if (BaseDebug::show)
 		{
 			for (std::vector<Chunk*>::iterator it = toRender.begin(); it != toRender.end(); ++it)
 			{
 				Chunk* chunk{ *it };
 				chunk->RenderDebug(player->m_camera.get());
 			}
-		}
+		}*/
 	}
 }
 
@@ -422,7 +488,7 @@ bool World::SetAndUpdateBlockAtWorld(glm::ivec3 blockpos, Block::ID id)
 	glm::ivec3 local = chunk->WorldToLocal(blockpos);
 	chunk->NewBlock(local, id, true);
 	std::lock_guard<std::mutex> lock(m_chunksMutex);
-	m_game->m_world->Regenerate(chunk);
+	m_game->m_world->GenerateMesh(chunk);
 	if (World::IsLocalBlockOnChunkEdge(local))
 	{
 		std::vector<glm::ivec3> neighbourDiffs = chunk->GetChunkNeighboursAt(local);
@@ -431,7 +497,7 @@ bool World::SetAndUpdateBlockAtWorld(glm::ivec3 blockpos, Block::ID id)
 			Chunk* neighbour = m_game->m_world->GetChunkAt(chunk->m_position + diff);
 			if (neighbour)
 			{
-				m_game->m_world->Regenerate(neighbour);
+				m_game->m_world->GenerateMesh(neighbour);
 			}
 		}
 	}

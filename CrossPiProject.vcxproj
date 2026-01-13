@@ -127,6 +127,7 @@ xcopy "$(SolutionDir)Common\Assets" "$(TargetDir)\Assets" /E /I /Y</Command>
       <AdditionalIncludeDirectories>Common/stb_image;Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <OpenMPSupport>false</OpenMPSupport>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -14,7 +14,7 @@ class Renderer
 public:
 	Game* m_game{ nullptr };
 	RENDER_MODE m_mode{RENDER_MODE::SOLID_MODE};
-	RendererHelper* m_helper;
+	RendererHelper* m_helper{ nullptr };
 
 	Renderer() = default;
 	~Renderer() = default;

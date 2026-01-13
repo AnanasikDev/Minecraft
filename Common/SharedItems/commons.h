@@ -11,60 +11,65 @@
 class Timer
 {
 public:
-	Timer() : accumulated_time(0), running(false) {}
+	Timer() : m_accumulatedTime(0), m_isRunning(false) {}
 
-	void start()
+	void Start()
 	{
-		if (!running)
+		if (!m_isRunning)
 		{
-			start_time = std::chrono::high_resolution_clock::now();
-			running = true;
+			m_startTime = std::chrono::high_resolution_clock::now();
+			m_isRunning = true;
 		}
 	}
 
-	void stop()
+	void Stop()
 	{
-		if (running)
+		if (m_isRunning)
 		{
-			accumulated_time += current_session_time();
-			running = false;
+			m_accumulatedTime += CurrentSessionTime();
+			m_isRunning = false;
 		}
 	}
 
-	void reset()
+	void Reset()
 	{
-		accumulated_time = 0;
-		running = false;
+		m_accumulatedTime = 0;
+		m_isRunning = false;
 	}
 
-	void set_value(double seconds)
+	void SetValue(double seconds)
 	{
-		accumulated_time = seconds;
-		if (running)
+		m_accumulatedTime = seconds;
+		if (m_isRunning)
 		{
-			start_time = std::chrono::high_resolution_clock::now();
+			m_startTime = std::chrono::high_resolution_clock::now();
 		}
 	}
 
-	double elapsed() const
+	float Elapsed() const
 	{
-		double total = accumulated_time;
-		if (running)
+		double total{ m_accumulatedTime };
+		if (m_isRunning)
 		{
-			total += current_session_time();
+			total += CurrentSessionTime();
 		}
-		return total;
+		return static_cast<float>(total);
+	}
+
+	bool IsRunning() const
+	{
+		return m_isRunning;
 	}
 
 private:
-	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
-	double accumulated_time;
-	bool running;
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
+	double m_accumulatedTime;
+	bool m_isRunning;
 
-	double current_session_time() const
+	double CurrentSessionTime() const
 	{
-		auto now = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> diff = now - start_time;
+		std::chrono::steady_clock::time_point now{ std::chrono::high_resolution_clock::now() };
+		std::chrono::duration<double> diff{ now - m_startTime };
 		return diff.count();
 	}
 };
@@ -127,39 +132,39 @@ glm::ivec3 InvertVec3(glm::ivec3 vec);
 struct GameTime
 {
 private:
-	static inline std::chrono::system_clock::time_point m_StartTime;
-	static Timer m_Timer;
+	static inline std::chrono::system_clock::time_point m_startTime;
+	static Timer m_timer;
 
 public:
 	static float DAY_SECONDS;
 
 	static void Init()
 	{
-		m_StartTime = std::chrono::system_clock::now();
-		m_Timer.reset();
+		m_startTime = std::chrono::system_clock::now();
+		m_timer.Reset();
 	}
 
 	static void SetDayTime(float time01)
 	{
-		m_Timer.set_value(time01 * DAY_SECONDS);
+		m_timer.SetValue(time01 * DAY_SECONDS);
 	}
 
 	static void ToggleDayCycle(bool value)
 	{
 		if (value)
 		{
-			m_Timer.start();
+			m_timer.Start();
 		}
 		else
 		{
-			m_Timer.stop();
+			m_timer.Stop();
 		}
 	}
 
 	static float SinceStartup()
 	{
-		auto now = std::chrono::system_clock::now();
-		std::chrono::duration<float> elapsed = now - m_StartTime;
+		std::chrono::system_clock::time_point now{ std::chrono::system_clock::now() };
+		std::chrono::duration<float> elapsed{ now - m_startTime };
 		return elapsed.count();
 	}
 
@@ -184,6 +189,6 @@ public:
 
 	static float TimeOfDayUnclamped()
 	{
-		return m_Timer.elapsed() / DAY_SECONDS;
+		return m_timer.Elapsed() / DAY_SECONDS;
 	}
 };

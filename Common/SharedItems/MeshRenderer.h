@@ -1,6 +1,5 @@
 #pragma once
 
-#include "IRenderable.h"
 #include "Transform.h"
 #include "Mesh.h"
 #include "ElementBuffer.h"
@@ -15,7 +14,7 @@ template <typename Vertex>
 struct Mesh;
 
 template <typename Vertex>
-class MeshRenderer : public IRenderable
+class MeshRenderer
 {
 public:
 	Mesh<Vertex>* m_mesh{ nullptr };

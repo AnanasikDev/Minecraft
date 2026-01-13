@@ -63,12 +63,13 @@ bool Shader::LoadFromFile(const std::string& path)
 	if (stream)
 	{
 		stream.seekg(0, stream.end);
-		const int length(stream.tellg());
+		const std::streampos lengthPos{ stream.tellg() };
+		const size_t length{ static_cast<size_t>(lengthPos) };
 		m_source.resize(length);
 		stream.seekg(0);
-		stream.read((char*)m_source.data(), length);
+		stream.read(m_source.data(), static_cast<std::streamsize>(length));
 		printf("Successfully loaded shader at %s", path.c_str());
-		std::string srcpreview = m_source;
+		std::string srcpreview{ m_source };
 		if (srcpreview.size() > PREVIEW_LENGTH) srcpreview[PREVIEW_LENGTH] = '\0';
 		printf(" | preview: %s\n", srcpreview.c_str());
 		return LoadFromString(m_source);
@@ -96,7 +97,6 @@ bool Shader::Compile()
 	{
 		int length = 0;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		const bool isLong = length >= 512;
 		char* message = nullptr;
 		message = (char*)malloc(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);

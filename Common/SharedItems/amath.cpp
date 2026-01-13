@@ -27,7 +27,7 @@ bool AABB2D::Intersects(const AABB2D& other) const
 
 glm::vec2 AABB2D::operator[](int index) const
 {
-	//ASSERT_VAR(index, index >= 0 && index < 4, "Cannot index AABB. Index must be within the range of [0; 3]");
+	assert(index >= 0 && index < 4 && "Cannot index AABB. Index must be within the range of [0; 3]");
 	switch (index)
 	{
 	case 0:
@@ -49,8 +49,8 @@ glm::vec2 AABB2D::operator[](int index) const
 
 AABB2D AABB2D::FromCenterAndSize(glm::vec2 center, glm::vec2 size)
 {
-	//ASSERT_VAR(size.x, size.x >= 0, "Size cannot be negative");
-	//ASSERT_VAR(size.y, size.y >= 0, "Size cannot be negative");
+	assert(size.x >= 0 && "Size cannot be negative");
+	assert(size.y >= 0 && "Size cannot be negative");
 	return AABB2D
 	(
 		glm::vec2(center.x - size.x / 2, center.y - size.y / 2),
@@ -60,7 +60,7 @@ AABB2D AABB2D::FromCenterAndSize(glm::vec2 center, glm::vec2 size)
 
 AABB2D AABB2D::FromCenterAndSize(glm::vec2 center, float size)
 {
-	//ASSERT_VAR(size, size >= 0, "Size cannot be negative");
+	assert(size >= 0 && "Size cannot be negative");
 	return AABB2D
 	(
 		glm::vec2(center.x - size / 2, center.y - size / 2),
@@ -85,11 +85,11 @@ bool AABB2D::Intersects(glm::vec2 min1, glm::vec2 max1, glm::vec2 min2, glm::vec
 
 AABB2D AABB2D::GetIntersection(const AABB2D& a, const AABB2D& b)
 {
-	const float res_min_x{ fmax(a.m_min.x, b.m_min.x) };
-	const float res_min_y{ fmax(a.m_min.y, b.m_min.y) };
+	const float res_min_x{ fmaxf(a.m_min.x, b.m_min.x) };
+	const float res_min_y{ fmaxf(a.m_min.y, b.m_min.y) };
 
-	const float res_max_x{ fmin(a.m_max.x, b.m_max.x) };
-	const float res_max_y{ fmin(a.m_max.y, b.m_max.y) };
+	const float res_max_x{ fminf(a.m_max.x, b.m_max.x) };
+	const float res_max_y{ fminf(a.m_max.y, b.m_max.y) };
 
 	if (res_min_x < res_max_x && res_min_y < res_max_y)
 		return AABB2D(glm::vec2(res_min_x, res_min_y), glm::vec2(res_max_x, res_max_y));
@@ -168,13 +168,13 @@ bool AABB3D::Intersects(glm::vec3 min1, glm::vec3 max1, glm::vec3 min2, glm::vec
 
 AABB3D AABB3D::GetIntersection(const AABB3D& a, const AABB3D& b)
 {
-	const float res_min_x{ fmax(a.m_min.x, b.m_min.x) };
-	const float res_min_y{ fmax(a.m_min.y, b.m_min.y) };
-	const float res_min_z{ fmax(a.m_min.z, b.m_min.z) };
+	const float res_min_x{ fmaxf(a.m_min.x, b.m_min.x) };
+	const float res_min_y{ fmaxf(a.m_min.y, b.m_min.y) };
+	const float res_min_z{ fmaxf(a.m_min.z, b.m_min.z) };
 
-	const float res_max_x{ fmin(a.m_max.x, b.m_max.x) };
-	const float res_max_y{ fmin(a.m_max.y, b.m_max.y) };
-	const float res_max_z{ fmin(a.m_max.z, b.m_max.z) };
+	const float res_max_x{ fminf(a.m_max.x, b.m_max.x) };
+	const float res_max_y{ fminf(a.m_max.y, b.m_max.y) };
+	const float res_max_z{ fminf(a.m_max.z, b.m_max.z) };
 
 	if (res_min_x < res_max_x && res_min_y < res_max_y && res_min_z < res_max_z)
 	{

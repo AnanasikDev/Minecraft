@@ -16,7 +16,7 @@ public:
 		glDeleteBuffers(1, &m_id);
 	}
 
-	void LinkExternal(std::vector<unsigned int>* buffer, unsigned int size);
+	void LinkExternal(std::vector<unsigned int>* buffer, size_t size);
 	void Bind();
 	void Unbind();
 

@@ -225,7 +225,7 @@ void ImGui_ImplX11_NewFrame() {
 
 bool ImGui_ImplX11_ProcessEvent(void *event_ptr) {
     XEvent *event = (XEvent *)event_ptr;
-    ImGui_ImplX11_Data *bd = ImGui_ImplX11_GetBackendData();
+    //ImGui_ImplX11_Data *bd = ImGui_ImplX11_GetBackendData();
     ImGuiIO &io = ImGui::GetIO();
 
     switch (event->type)
@@ -234,21 +234,15 @@ bool ImGui_ImplX11_ProcessEvent(void *event_ptr) {
     case ButtonRelease:
     {
         bool down = (event->type == ButtonPress);
-        if (event->xbutton.button >= 1 && event->xbutton.button <= 5)
-        {
-            int button = event->xbutton.button - 1;
-            if (button < 3)
-            {
-                io.AddMouseButtonEvent(button, down);
-                bd->m_MouseButtonsDown[button] = down;
-            } else if (button == 3) // Scroll up
-            {
-                if (down) io.AddMouseWheelEvent(0.0f, 1.0f);
-            } else if (button == 4) // Scroll down
-            {
-                if (down) io.AddMouseWheelEvent(0.0f, -1.0f);
-            }
-        }
+        int x_button = event->xbutton.button;
+
+        // Map X11 buttons to ImGui buttons
+        if (x_button == Button1) io.AddMouseButtonEvent(0, down); // Left
+        else if (x_button == Button2) io.AddMouseButtonEvent(2, down); // Middle
+        else if (x_button == Button3) io.AddMouseButtonEvent(1, down); // Right
+        else if (x_button == Button4 && down) io.AddMouseWheelEvent(0.0f, 1.0f); // Scroll Up
+        else if (x_button == Button5 && down) io.AddMouseWheelEvent(0.0f, -1.0f); // Scroll Down
+
         return true;
     }
     case MotionNotify:

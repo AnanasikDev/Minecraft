@@ -14,14 +14,9 @@ public:
 	KeyState GetKeyState(Key key) const override;
 	void Update() override;
 
-private:
 	pthread_t keyboardThread;
 	std::string keyboardLocation;
 
-	void FindKeyboardLocation();
-	std::string FindActiveKeyboardEv();
-
-	//static void* ProcessKeyboardThread(void* arg);
 	void ProcessKeyboard();
 };
 

@@ -19,10 +19,6 @@ int Chunk::SGUID = 0;
 
 Chunk::Chunk(glm::ivec3 pos, Game* game) : m_position(pos), m_game(game)
 {
-	m_isDirty = false;
-	m_isGenerating = false;
-	m_isReadyForRender = false;
-
 	m_id = SGUID++;
 	m_blocks = std::make_unique<std::array<Block, XWIDTH * YHEIGHT * ZDEPTH>>();
 	m_meshRenderer.UseMesh(&m_mesh);
@@ -166,7 +162,6 @@ void Chunk::NewBlock(glm::ivec3 pos, Block::ID id, bool update)
 	if (!block || block->m_id == id) return;
 	const glm::ivec3 worldpos{ LocalToWorld(pos) };
 	const unsigned char prevEmission{ block->GetEmission() };
-	const unsigned char lightLevel{ block->GetLightLevel() };
 
 	if (prevEmission > 0)
 	{
@@ -226,6 +221,11 @@ void Chunk::NewBlock(glm::ivec3 pos, Block::ID id, bool update)
 			}
 		}
 		m_game->m_world->m_lightManager.PushNonLight(NonLight(worldpos, isObstruction, newLightLevel, newSkyExposure));
+	}
+
+	if (update)
+	{
+		m_isCustom = true;
 	}
 }
 

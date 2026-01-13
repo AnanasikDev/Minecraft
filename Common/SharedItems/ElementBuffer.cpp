@@ -17,7 +17,7 @@ void ElementBuffer::Unbind()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void ElementBuffer::LinkExternal(std::vector<unsigned int>* buffer, unsigned int size)
+void ElementBuffer::LinkExternal(std::vector<unsigned int>* buffer, size_t size)
 {
 	Bind();
 	m_bufferPtr = buffer;

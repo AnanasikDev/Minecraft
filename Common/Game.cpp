@@ -32,8 +32,8 @@
 bool BaseDebug::show = false;
 
 Game::Game(Input* const input, IGraphics* graphics, Platform platform) :
-	input(input),
-	graphics(graphics),
+	m_input(input),
+	m_graphics(graphics),
 	m_platform(platform)
 {
 	m_renderer = std::make_unique<Renderer>();
@@ -55,8 +55,10 @@ void Game::Start()
 	printf("This GPU Renders with :%s\n", glGetString(GL_RENDERER));
 	printf("This GPU Shaders are  :%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
+	Saver::LoadGamerules(m_gamerules);
+
 	GameTime::Init();
-	GameTime::SetDayTime(m_gamerules.m_DefaultTime);
+	GameTime::SetDayTime(m_gamerules.m_defaultTime);
 
 	RendererHelper rendererHelper;
 	rendererHelper.Init();
@@ -70,60 +72,60 @@ void Game::Start()
 	auto lastTime = startTime;
 
 	m_atlas = std::make_unique<TextureAtlas>();
-	m_atlas->Create(m_assetManager->GetAssetPathString("Textures/atlas.png"), GL_REPEAT, 16);
+	m_atlas->Create3D(m_assetManager->GetAssetPathString("Textures/atlas.png"), GL_REPEAT, 16);
 
 	IMouse& mouse = GetInput().GetMouse();
 	mouse.Init();
 
-	BlocksDatabase::Init();
+	BlocksDatabase::Init(this);
 
 	m_world = std::make_unique<World>();
 	m_world->SetGenerator(std::make_unique<WorldGen>(m_world.get()));
 	m_world->Init(this);
+
+	m_UI.Init(this);
 
 	m_player = std::make_unique<Player>(this);
 
 	m_sunmoon = std::make_unique<Sunmoon>();
 	m_sunmoon->Init(this);
 
-	graphics->InitGUI();
+	m_graphics->InitGUI();
 
-	if (IsLinux())
-	{
-		m_world->GENERATION_DISTANCE = 4;
-	}
-	if (IsWindows())
-	{
-		m_world->GENERATION_DISTANCE = 10;
-	}
+	GameTime::ToggleDayCycle(m_gamerules.m_doDayNightCycle);
 
-	GameTime::ToggleDayCycle(m_gamerules.m_DoDayNightCycle);
+	m_saver.LoadGlobal(this);
 
-	while(!quitting)
+	while(!m_isQuitting)
 	{
-		graphics->BeginFrame();
+		m_graphics->BeginFrame();
 		ProcessInput();
-		if (input->GetKeyboard().IsKeyPressed(Key::ESCAPE))
+		if (m_input->GetKeyboard().IsKeyPressed(Key::ESCAPE))
 		{
-			graphics->Quit();
-			return;
+			ImGuiIO& io = ImGui::GetIO();
+			if (!io.WantCaptureKeyboard)
+			{
+				m_graphics->Quit();
+				OnQuit();
+				return;
+			}
 		}
 
 		auto time = std::chrono::system_clock::now();
 		std::chrono::duration<float> delta = time - lastTime;
 
-		gameDeltaTime = delta.count();
+		m_gameDeltaTime = delta.count();
 
 		std::chrono::duration<float> elapsed = time - startTime;
-		if(elapsed.count() > 0.25f && frameCount > 10)
+		if(elapsed.count() > 0.25f && m_frameCount > 10)
 		{
-			m_averageFPS = static_cast<float>(frameCount) / elapsed.count();
+			m_averageFPS = static_cast<float>(m_frameCount) / elapsed.count();
 			startTime = time;
-			frameCount = 0;
+			m_frameCount = 0;
 			//printf("%f\n", m_averageFPS);
 		}
 		
-		if (input->GetKeyboard().IsKeyPressed(Key::TAB))
+		if (m_input->GetKeyboard().IsKeyPressed(Key::TAB))
 		{
 			if (m_renderer->m_mode == RENDER_MODE::SOLID_MODE)
 			{
@@ -135,16 +137,24 @@ void Game::Start()
 			}
 		}
 
-		if (input->GetKeyboard().IsKeyPressed(Key::C))
+		if (m_input->GetKeyboard().IsKeyPressed(Key::C))
 		{
-			if (graphics->IsCursorLocked()) graphics->UnlockCursor();
-			else graphics->LockCursor();
-			GetInput().GetMouse().Init();
+			ImGuiIO& io = ImGui::GetIO();
+			if (!io.WantCaptureKeyboard)
+			{
+				if (m_graphics->IsCursorLocked()) m_graphics->UnlockCursor();
+				else m_graphics->LockCursor();
+				GetInput().GetMouse().Init();
+			}
 		}
 
-		if (input->GetKeyboard().IsKeyPressed(Key::T))
+		if (m_input->GetKeyboard().IsKeyPressed(Key::T))
 		{
-			m_displaySettings = !m_displaySettings;
+			ImGuiIO& io = ImGui::GetIO();
+			if (!io.WantCaptureKeyboard)
+			{
+				m_displaySettings = !m_displaySettings;
+			}
 		}
 
 		m_renderer->Get()->ClearScreen();
@@ -162,16 +172,18 @@ void Game::Start()
 		m_player->Render();
 		DrawCrosshair();
 		if (m_displaySettings) DisplaySettings();
-		graphics->EndFrame();
+		m_UI.Update();
+		m_UI.Render();
+		m_graphics->EndFrame();
 
 		GetInput().GetKeyboard().Update();
 		GetInput().GetMouse().Flush();
-		graphics->SwapBuffer();
+		m_graphics->SwapBuffer();
 
 		lastTime = time;
-		++frameCount;
-		m_fpsDeque.push_back(1.0f / gameDeltaTime);
-		if (m_fpsDeque.size() == COLLECT_FPS_DATA_FRAMES)
+		++m_frameCount;
+		m_fpsDeque.push_back(1.0f / m_gameDeltaTime);
+		if (static_cast<int>(m_fpsDeque.size()) == m_fpsCollectionNumber)
 		{
 			m_fpsDeque.pop_front();
 		}
@@ -179,17 +191,23 @@ void Game::Start()
 		VertexBuffer<FVertex>::NUM_RENDERED = 0;
 	}
 
-	graphics->Quit();
+	m_graphics->Quit();
+	OnQuit();
 }
 
 Input& Game::GetInput()
 {
-	return *input;
+	return *m_input;
+}
+
+IGraphics* Game::GetGraphics()
+{
+	return m_graphics;
 }
 
 void Game::Quit()
 {
-	quitting = true;
+	m_isQuitting = true;
 }
 
 void Game::ProcessInput()
@@ -209,6 +227,11 @@ void Game::DrawCrosshair()
 	draw_list->AddLine(ImVec2(center.x, center.y - 10), ImVec2(center.x, center.y + 10), color, 2.0f);
 }
 
+void Game::DrawUI()
+{
+	m_UI.Render();
+}
+
 void Game::DisplaySettings()
 {
 	ImGui::PushItemWidth(160);
@@ -222,10 +245,10 @@ void Game::DisplaySettings()
 	}
 	ImVec2 size(10, 20);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, size);
-	ImGui::PlotLines("Graph", values.data(), values.size(), 0, "avg", 0.0f, 120.0f);
+	ImGui::PlotLines("Graph", values.data(), static_cast<int>(values.size()), 0, "avg", 0.0f, 120.0f);
 	ImGui::SameLine();
 	ImGui::PushItemWidth(30);
-	if (ImGui::DragInt("Num", &COLLECT_FPS_DATA_FRAMES))
+	if (ImGui::DragInt("Num", &m_fpsCollectionNumber))
 	{
 		m_fpsDeque.clear();
 	}
@@ -233,10 +256,12 @@ void Game::DisplaySettings()
 	ImGui::PopStyleVar();
 	int verts = VertexBuffer<FVertex>::NUM_RENDERED;
 	ImGui::DragInt("Vertices", &verts, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
-	ImGui::SliderInt("Generation distance", &m_world->GENERATION_DISTANCE, 2, 32);
-	ImGui::DragInt("Chunks active", &m_world->CHUNKS_ACTIVE, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
-	ImGui::DragInt("Chunks rendered", &m_world->CHUNKS_RENDERED, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::SliderInt("Generation distance", &GetGamerules().m_generationDistance, 2, 32);
+	ImGui::DragInt("Chunks active", &m_world->m_chunksActive, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
+	ImGui::DragInt("Chunks rendered", &m_world->m_chunksRendered, 0.0f, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	ImGui::Checkbox("Show debug", &BaseDebug::show);
+	ImGui::DragFloat("Frustum culling", &Camera::FOV_MULT, 0.03f, 0.3f, 1.5f, "%.2f");
+	ImGui::Checkbox("Render water", &GetGamerules().m_renderWater);
 
 	ImGui::SeparatorText("Player");
 	glm::ivec3 playerLocalPos = World::WorldToLocalAny(World::SnapToBlock(m_player->m_transform.GetWorldPosition()));
@@ -279,9 +304,9 @@ void Game::DisplaySettings()
 	ImGui::DragInt("Sky exposure", &sky, 0, 0, 0, "%d", ImGuiSliderFlags_NoInput);
 	ImGui::Text(name.c_str());
 
-	if (ImGui::Checkbox("Do day/night", &m_gamerules.m_DoDayNightCycle))
+	if (ImGui::Checkbox("Do day/night", &m_gamerules.m_doDayNightCycle))
 	{
-		GameTime::ToggleDayCycle(m_gamerules.m_DoDayNightCycle);
+		GameTime::ToggleDayCycle(m_gamerules.m_doDayNightCycle);
 	}
 
 	std::stringstream ss;
@@ -308,4 +333,11 @@ void Game::InitializeOpenGLES()
 	glFrontFace(GL_CCW);
 
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+}
+
+void Game::OnQuit()
+{
+	Saver::SaveGamerules(m_gamerules);
+	m_saver.SaveGlobal(this);
+	m_world->OnQuit();
 }

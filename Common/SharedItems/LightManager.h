@@ -15,8 +15,8 @@ class LightManager
 {
 	struct BFSIter
 	{
-		Block* block;
-		const BlockData* blockdata;
+		Block* block{ nullptr };
+		const BlockData* blockdata{ nullptr };
 		glm::ivec3 globalpos;
 		glm::ivec3 shift;
 		unsigned char& currentvalue;

@@ -50,6 +50,17 @@ bool BlockData::IsWater(Block::ID id)
 	return id == Block::ID::Water;
 }
 
+bool BlockData::IsInteractable(Block::ID id)
+{
+	return BlocksDatabase::Get(id)->IsInteractable();
+}
+
+BlockData* BlockData::Interactable(funInteraction interaction)
+{
+	m_funInteraction = interaction;
+	return this;
+}
+
 void BlockData::GenerateGeometry(const GeomContext& ctx)
 {
 	generateGeometry(*this, ctx);
@@ -82,4 +93,11 @@ bool Block::IsLightEmitter() const
 Collider* Block::GetCollider()
 {
 	return &(GetData()->m_collider);
+}
+
+Interaction::Result Block::TryInteract(Interaction args) const
+{
+	auto& f = GetData()->m_funInteraction;
+	if (!f.has_value()) return Interaction::Result::Failed_Continue;
+	return f.value()(args);
 }

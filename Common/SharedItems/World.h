@@ -23,10 +23,12 @@ class WorldGen;
 class World
 {
 public:
+	static constexpr float DELETION_DISTANCE_FACTOR{ 1.3f };
+
 	Game* m_game{ nullptr };
-	int GENERATION_DISTANCE{ 4 };
-	int CHUNKS_RENDERED{ 0 };
-	int CHUNKS_ACTIVE{ 0 };
+	int m_generationDistance{ 4 };
+	int m_chunksRendered{ 0 };
+	int m_chunksActive{ 0 };
 
 	LightManager m_lightManager;
 
@@ -41,6 +43,7 @@ public:
 	void Init(Game* game);
 	void Update();
 	void FixedUpdate();
+	void OnQuit();
 	
 	void Render(Player* player);
 	bool ForceSetBlockAtWorld(glm::ivec3 pos, Block::ID id);
@@ -49,7 +52,7 @@ public:
 	Chunk* GetChunkAt(glm::ivec3 pos);
 	void GenerateChunkAt(glm::ivec3 chunkPos);
 	RemeshRequest MakeRequest(Chunk* chunk);
-	void Regenerate(Chunk* chunk);
+	void GenerateMesh(Chunk* chunk);
 	void InitGenerate(Chunk* chunk);
 	void GenerateChunkGrid(RemeshRequest& request);
 
@@ -110,12 +113,12 @@ public:
 	void SetGenerator(std::unique_ptr<WorldGen> worldgen);
 
 	static constexpr glm::ivec3 closeXYZNeighbours[6]{
-			glm::ivec3(0, 0, 1),
-			glm::ivec3(0, 0, -1),
-			glm::ivec3(1, 0, 0),
-			glm::ivec3(-1, 0, 0),
-			glm::ivec3(0, 1, 0),
-			glm::ivec3(0, -1, 0),
+		glm::ivec3(0, 0, 1),
+		glm::ivec3(0, 0, -1),
+		glm::ivec3(1, 0, 0),
+		glm::ivec3(-1, 0, 0),
+		glm::ivec3(0, 1, 0),
+		glm::ivec3(0, -1, 0),
 	};
 
 	static constexpr glm::ivec3 allXYZNeighbours[26]{
@@ -138,22 +141,22 @@ public:
 	};
 
 	static constexpr glm::ivec3 closeXZNeighbours[4]{
-			glm::ivec3(0, 0, 1),
-			glm::ivec3(0, 0, -1),
-			glm::ivec3(1, 0, 0),
-			glm::ivec3(-1, 0, 0),
+		glm::ivec3(0, 0, 1),
+		glm::ivec3(0, 0, -1),
+		glm::ivec3(1, 0, 0),
+		glm::ivec3(-1, 0, 0),
 	};
 
 	static constexpr glm::ivec3 allXZNeighbours[8]{
-			glm::ivec3( 0, 0,  1),
-			glm::ivec3( 0, 0, -1),
-			glm::ivec3( 1, 0,  0),
-			glm::ivec3(-1, 0,  0),
+		glm::ivec3( 0, 0,  1),
+		glm::ivec3( 0, 0, -1),
+		glm::ivec3( 1, 0,  0),
+		glm::ivec3(-1, 0,  0),
 
-			glm::ivec3( 1, 0,  1),
-			glm::ivec3( 1, 0, -1),
-			glm::ivec3(-1, 0,  1),
-			glm::ivec3(-1, 0, -1),
+		glm::ivec3( 1, 0,  1),
+		glm::ivec3( 1, 0, -1),
+		glm::ivec3(-1, 0,  1),
+		glm::ivec3(-1, 0, -1),
 	};
 
 	friend class LightManager;
@@ -168,4 +171,6 @@ private:
 	std::vector<std::thread> m_workerThreads;
 	std::unique_ptr<WorldGen> m_generator;
 	TextureAtlas* m_atlas{ nullptr };
+
+	friend class Console;
 };

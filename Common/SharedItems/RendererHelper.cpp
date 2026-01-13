@@ -1,5 +1,3 @@
-#pragma once
-
 #include "glh.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -9,7 +7,6 @@
 #include "Program.h"
 #include "Game.h"
 #include "Camera.h"
-#include "IRenderable.h"
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
 #include "RendererHelper.h"
@@ -73,7 +70,7 @@ void RendererHelper::Init()
 
 void RendererHelper::Update(Gamerules& gamerules)
 {
-	if (gamerules.m_DoDayNightCycle)
+	if (gamerules.m_doDayNightCycle)
 	{
 		const float sunIntensity{ GameTime::GetSunIntensity() };
 		m_mainProgram->SetFloat("u_SunIntensity", sunIntensity);
@@ -122,6 +119,5 @@ void RendererHelper::CreateProgram(Program* program, std::string vertPath, std::
 	fragShader->LoadFromFile(fragPath);
 	fragShader->Compile();
 
-	Shader* shaders[2]{ vertShader, fragShader };
-	program->AddShaders<2>(shaders);
+	program->AddShaders(std::vector<Shader*>{vertShader, fragShader});
 }

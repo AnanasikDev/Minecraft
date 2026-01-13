@@ -6,6 +6,8 @@
 #include "Game.h"
 #include "IInput.h"
 
+float Camera::FOV_MULT = 1.0f;
+
 Camera::Camera(Game* game, const Frustum& frustum, const Transform& transform, float sense) : Gameobject(game, transform), m_frustum(frustum), m_sense(sense)
 {
 }
@@ -28,73 +30,25 @@ glm::mat4 Camera::GetProjection() const
 }
 
 bool Camera::IsInFrustum(glm::vec3 pos, bool includeVertical, glm::vec3 offset) const
-{	
+{
 	glm::vec3 eye{ m_transform.GetWorldForward() };
-	if (!includeVertical)
-	{
-		eye.y = 0;
-	}
-	glm::vec3 dir{ pos - (m_transform.GetWorldPosition() + offset - eye * 4.0f) };
-	if (!includeVertical)
-	{
-		dir.y = 0;
-	}
+	if (!includeVertical) eye.y = 0;
+
+	glm::vec3 dir{ pos - (m_transform.GetWorldPosition() + offset) };
+	if (!includeVertical) dir.y = 0;
+
 	eye = glm::normalize(eye);
 	dir = glm::normalize(dir);
 
-	const float fovcos = glm::cos(glm::radians(m_frustum.m_fov)) / 2.0f;
-	bool isInFrustum{
-		1 - glm::dot(eye, dir) < fovcos
-	};
+	constexpr float adj{ 1.25f };
+	const float pitchRad	{ glm::abs(glm::radians(m_transform.GetLocalEulerAngles().x)) };
+	const float cosPitch	{ glm::max(glm::cos(pitchRad), 0.1f) };
+	const float realFov		{ FOV_MULT * adj * m_frustum.m_fov / cosPitch };
+	const float threshold	{ glm::cos(glm::radians(realFov / 2.0f)) };
 
-	return isInFrustum;
+	return glm::dot(eye, dir) > threshold;
 }
 
 Frustum::Frustum(float fov, glm::vec2 screen, float near, float far) : m_fov(fov), m_size(screen), m_nearPlane(near), m_farPlane(far)
 {
-}
-
-int Frustum::ContainsAaBox(const AABB2D& refBox) const
-{
-	//glm::vec3 vCorner[8];
-	//int iTotalIn = 0;
-
-	//// get the corners of the box into the vCorner array
-	//refBox.GetVertices(vCorner);
-
-	//// test all 8 corners against the 6 sides 
-	//// if all points are behind 1 specific plane, we are out
-	//// if we are in with all points, then we are fully in
-	//for (int p = 0; p < 6; ++p)
-	//{
-
-	//	int iInCount = 8;
-	//	int iPtIn = 1;
-
-	//	for (int i = 0; i < 8; ++i)
-	//	{
-
-	//		// test this point against the planes
-	//		if (m_plane[p].SideOfPlane(vCorner[i]) == BEHIND)
-	//		{
-	//			iPtIn = 0;
-	//			--iInCount;
-	//		}
-	//	}
-
-	//	// were all the points outside of plane p?
-	//	If(iInCount == 0)
-	//		return(OUT);
-
-	//	// check if they were all on the right side of the plane
-	//	iTotalIn += iPtIn;
-	//}
-
-	//// so if iTotalIn is 6, then all are inside the view
-	//if (iTotalIn == 6)
-	//	return(IN);
-
-	//// we must be partly in then otherwise
-	//return(INTERSECT);
-	return 0;
 }

@@ -1,217 +1,219 @@
 #include "RaspKeyboard.h"
 
-#include <fstream>
-#include <sstream>
 #include <iostream>
-#include <linux/input.h>
-#include "IInput.h"
-#include <malloc.h>
+#include <vector>
+#include <map>
+#include <atomic>
+#include <thread>
+#include <mutex>
+#include <cstring>
+#include <unistd.h> // for usleep
 
-static KeyState keyboard_keystates[IKeyboard::MAX_KEYS];
-static FILE* fKeyboard;
+// X11 Headers
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
 
-KeyState* const RaspKeyboard::GetKeyHandleRW(Key key) const
+// Shared atomic state between the background X11 thread and the main Update loop
+// 512 to cover standard keyboards.
+static std::atomic<bool> g_PhysicalKeyState[512] = { false };
+
+// Map X11 KeySyms to the Engine's Key Enum
+static std::map<KeySym, int> g_KeySymMap;
+
+// Helper to bridge pthread to member function
+static void* InternalThreadHelper(void* context)
 {
-	switch (key)
-	{
-	case Key::A:			return &m_keystate[KEY_A];
-	case Key::B:			return &m_keystate[KEY_B];
-	case Key::C:			return &m_keystate[KEY_C];
-	case Key::D:			return &m_keystate[KEY_D];
-	case Key::E:			return &m_keystate[KEY_E];
-	case Key::F:			return &m_keystate[KEY_F];
-	case Key::G:			return &m_keystate[KEY_G];
-	case Key::H:			return &m_keystate[KEY_H];
-	case Key::I:			return &m_keystate[KEY_I];
-	case Key::J:			return &m_keystate[KEY_J];
-	case Key::K:			return &m_keystate[KEY_K];
-	case Key::L:			return &m_keystate[KEY_L];
-	case Key::M:			return &m_keystate[KEY_M];
-	case Key::N:			return &m_keystate[KEY_N];
-	case Key::O:			return &m_keystate[KEY_O];
-	case Key::P:			return &m_keystate[KEY_P];
-	case Key::Q:			return &m_keystate[KEY_Q];
-	case Key::R:			return &m_keystate[KEY_R];
-	case Key::S:			return &m_keystate[KEY_S];
-	case Key::T:			return &m_keystate[KEY_T];
-	case Key::U:			return &m_keystate[KEY_U];
-	case Key::V:			return &m_keystate[KEY_V];
-	case Key::W:			return &m_keystate[KEY_W];
-	case Key::X:			return &m_keystate[KEY_X];
-	case Key::Y:			return &m_keystate[KEY_Y];
-	case Key::Z:			return &m_keystate[KEY_Z];
-	case Key::NUM_0:		return &m_keystate[KEY_0];
-	case Key::NUM_1:		return &m_keystate[KEY_1];
-	case Key::NUM_2:		return &m_keystate[KEY_2];
-	case Key::NUM_3:		return &m_keystate[KEY_3];
-	case Key::NUM_4:		return &m_keystate[KEY_4];
-	case Key::NUM_5:		return &m_keystate[KEY_5];
-	case Key::NUM_6:		return &m_keystate[KEY_6];
-	case Key::NUM_7:		return &m_keystate[KEY_7];
-	case Key::NUM_8:		return &m_keystate[KEY_8];
-	case Key::NUM_9:		return &m_keystate[KEY_9];
-	case Key::TAB:			return &m_keystate[KEY_TAB];
-	case Key::CAPS_LOCK:	return &m_keystate[KEY_CAPSLOCK];
-	case Key::SHIFT_LEFT:	return &m_keystate[KEY_LEFTSHIFT];
-	case Key::CTRL_LEFT:	return &m_keystate[KEY_LEFTCTRL];
-	case Key::ALT_LEFT:		return &m_keystate[KEY_LEFTALT];
-	case Key::ESCAPE:		return &m_keystate[KEY_ESC];
-	case Key::RIGHT_SHIFT:	return &m_keystate[KEY_RIGHTSHIFT];
-	case Key::ENTER:		return &m_keystate[KEY_ENTER];
-	case Key::ARROW_UP:		return &m_keystate[KEY_UP];
-	case Key::ARROW_RIGHT:	return &m_keystate[KEY_RIGHT];
-	case Key::ARROW_DOWN:	return &m_keystate[KEY_DOWN];
-	case Key::ARROW_LEFT:	return &m_keystate[KEY_LEFT];
-	case Key::SPACE:		return &m_keystate[KEY_SPACE];
-	default: std::cout << "ERROR::INPUT::Rasp Keycode not supported: " << static_cast<int>(key) << std::endl; return nullptr;
-	}
+    ((RaspKeyboard*)context)->ProcessKeyboard();
+    return nullptr;
 }
 
-const KeyState* const RaspKeyboard::GetKeyHandleR(Key key) const
+static void Register(int xkey, Key key)
 {
-	return GetKeyHandleRW(key);
+    g_KeySymMap[xkey] = static_cast<int>(key);
 }
 
-RaspKeyboard::RaspKeyboard()
+RaspKeyboard::RaspKeyboard() : keyboardThread(0)
 {
-	m_keystate = keyboard_keystates;
-	FindKeyboardLocation();
-	fKeyboard = fopen(keyboardLocation.c_str(), "r");
+    Register(XK_a, Key::A);
+    Register(XK_b, Key::B);
+    Register(XK_c, Key::C);
+    Register(XK_d, Key::D);
+    Register(XK_e, Key::E);
+    Register(XK_f, Key::F);
+    Register(XK_g, Key::G);
+    Register(XK_h, Key::H);
+    Register(XK_i, Key::I);
+    Register(XK_j, Key::J);
+    Register(XK_k, Key::K);
+    Register(XK_l, Key::L);
+    Register(XK_m, Key::M);
+    Register(XK_n, Key::N);
+    Register(XK_o, Key::O);
+    Register(XK_p, Key::P);
+    Register(XK_q, Key::Q);
+    Register(XK_r, Key::R);
+    Register(XK_s, Key::S);
+    Register(XK_t, Key::T);
+    Register(XK_u, Key::U);
+    Register(XK_v, Key::V);
+    Register(XK_w, Key::W);
+    Register(XK_x, Key::X);
+    Register(XK_y, Key::Y);
+    Register(XK_z, Key::Z);
+    Register(XK_Escape, Key::ESCAPE);
+    Register(XK_space, Key::SPACE);
+    Register(XK_0, Key::NUM_0);
+    Register(XK_0, Key::NUM_0);
+    Register(XK_1, Key::NUM_1);
+    Register(XK_2, Key::NUM_2);
+    Register(XK_3, Key::NUM_3);
+    Register(XK_4, Key::NUM_4);
+    Register(XK_5, Key::NUM_5);
+    Register(XK_6, Key::NUM_6);
+    Register(XK_7, Key::NUM_7);
+    Register(XK_8, Key::NUM_8);
+    Register(XK_9, Key::NUM_9);
+    Register(XK_Shift_L, Key::SHIFT_LEFT);
+    Register(XK_Shift_R, Key::RIGHT_SHIFT);
+    Register(XK_Control_L, Key::CTRL_LEFT);
+    Register(XK_Return, Key::ENTER);
+    Register(XK_Up, Key::ARROW_UP);
+    Register(XK_Down, Key::ARROW_DOWN);
+    Register(XK_Right, Key::ARROW_RIGHT);
+    Register(XK_Left, Key::ARROW_LEFT);
 
-	if (fKeyboard == nullptr)
-	{
-		printf("Keyboard file not found.\n");
-	}
+    std::cout << "[RaspKeyboard] Initializing X11 Event System..." << std::endl;
+
+    int result = pthread_create(&keyboardThread, nullptr, InternalThreadHelper, this);
+    if (result != 0)
+    {
+        std::cerr << "[RaspKeyboard] Error: Failed to create thread." << std::endl;
+    }
 }
 
 RaspKeyboard::~RaspKeyboard()
 {
-	fclose(fKeyboard);
-}
-
-KeyState RaspKeyboard::GetKeyState(Key key) const
-{
-	return *GetKeyHandleR(key);
+    if (keyboardThread)
+    {
+        pthread_cancel(keyboardThread);
+        pthread_join(keyboardThread, nullptr);
+    }
 }
 
 void RaspKeyboard::Update()
 {
-	ProcessKeyboard();
+    const int MAX_KEY_COUNT = 512;
+
+    for (int i = 0; i < MAX_KEY_COUNT; ++i)
+    {
+        Key key = static_cast<Key>(i);
+        KeyState* statePtr = GetKeyHandleRW(key);
+
+        // Skip keys we haven't touched yet
+        if (!statePtr) continue;
+
+        bool isPhysicallyDown = g_PhysicalKeyState[i];
+
+        switch (*statePtr)
+        {
+        case KeyState::Idle:
+            if (isPhysicallyDown) *statePtr = KeyState::Press;
+            break;
+
+        case KeyState::Press:
+            if (isPhysicallyDown) *statePtr = KeyState::Hold;
+            else *statePtr = KeyState::Release;
+            break;
+
+        case KeyState::Hold:
+            if (!isPhysicallyDown) *statePtr = KeyState::Release;
+            break;
+
+        case KeyState::Release:
+            if (isPhysicallyDown) *statePtr = KeyState::Press;
+            else *statePtr = KeyState::Idle;
+            break;
+        }
+    }
 }
 
-void RaspKeyboard::FindKeyboardLocation()
+KeyState RaspKeyboard::GetKeyState(Key key) const
 {
-	std::string ev{FindActiveKeyboardEv()};
-	keyboardLocation = "/dev/input/" + ev;
+    const KeyState* state = GetKeyHandleR(key);
+    return state ? *state : KeyState::Idle;
 }
 
-std::string RaspKeyboard::FindActiveKeyboardEv()
+static std::map<Key, KeyState> m_StateBuffer;
+
+KeyState* const RaspKeyboard::GetKeyHandleRW(Key key) const
 {
-	std::ifstream devicesFile;
-	devicesFile.open("/proc/bus/input/devices");
+    if (m_StateBuffer.find(key) == m_StateBuffer.end())
+    {
+        m_StateBuffer[key] = KeyState::Idle;
+    }
+    return &m_StateBuffer[key];
+}
 
-	std::stringstream devicesStream;
-
-	devicesStream << devicesFile.rdbuf();
-	devicesFile.close();
-
-	std::string devices = devicesStream.str();
-
-	// The index in the file for our current new line position.
-	std::size_t newLinePos{0};
-
-	// The EV value for the current device.
-	std::string ev{};
-
-	// Moves every new line in devices file.
-	do
-	{
-		// Checks for the Handlers field.
-		// Always caches it, so we can use it if we find the correct device.
-		if(devices.substr(newLinePos + 1, 11) == "H: Handlers")
-		{
-			// Index of the end of the line.
-			std::size_t nextNewLine{devices.find('\n', newLinePos + 1) - 1};
-
-			// The contents of the EV line.
-			std::string line{devices.substr(newLinePos + 1, nextNewLine - (newLinePos + 1))};
-
-			// The index of the last space, so we can get the last value.
-			std::size_t lastSpace{line.rfind(' ')};
-
-			// The very last value, which is the event.
-			ev = line.substr(lastSpace + 1, line.length() - lastSpace + 1);
-		}
-
-		// Checks if current line start with the EV field.
-		if(devices.substr(newLinePos + 1, 5) == "B: EV")
-		{
-			// The start of the value, while skipping the 'B: EV'.
-			std::size_t start{newLinePos + 7};
-
-			newLinePos = devices.find('\n', newLinePos + 1);
-
-			// Grabs the string value of the EV field.
-			std::string stringValue{devices.substr(start, newLinePos - start)};
-
-			// Moves the hex string into an uint.
-			unsigned int value;
-			std::stringstream ss;
-			ss << std::hex << stringValue;
-			ss >> value;
-
-			// Defines the mask for a keyboard.
-			constexpr unsigned int keyboardMask{0x120013};
-
-			if((value & keyboardMask) == keyboardMask)
-			{
-				break;
-			}
-
-			continue;
-		}
-
-
-		newLinePos = devices.find('\n', newLinePos + 1);
-	} while(newLinePos != std::string::npos);
-
-	return ev;
+const KeyState* const RaspKeyboard::GetKeyHandleR(Key key) const
+{
+    auto it = m_StateBuffer.find(key);
+    if (it != m_StateBuffer.end()) return &it->second;
+    static KeyState dummy = KeyState::Idle;
+    return &dummy;
 }
 
 void RaspKeyboard::ProcessKeyboard()
 {
-	Flush();
+    Display* display = XOpenDisplay(nullptr);
+    if (!display)
+    {
+        std::cerr << "[RaspKeyboard] Error: Cannot open X Display!" << std::endl;
+        return;
+    }
 
-	input_event event;
-	fread(&event, sizeof(input_event), 1, fKeyboard);
+    Window focusWin = None;
+    int revert;
 
-	if (event.type == (__u16)EV_KEY)
-	{
-		const bool isDown = event.value > 0;
-		KeyState& val = m_keystate[event.code];
-		if (isDown)
-		{
-			switch (val)
-			{
-			case KeyState::Idle:	val = KeyState::Press; break;
-			case KeyState::Release: val = KeyState::Press; break;
-			case KeyState::Press:	val = KeyState::Hold; break;
-			case KeyState::Hold:	val = KeyState::Hold; break;
-			default:
-				break;
-			}
-		}
-		else if (!isDown)
-		{
-			switch (val)
-			{
-			case KeyState::Idle:	val = KeyState::Idle; break;
-			case KeyState::Release: val = KeyState::Idle; break;
-			case KeyState::Press:	val = KeyState::Release; break;
-			case KeyState::Hold:	val = KeyState::Release; break;
-			default:
-				break;
-			}
-		}
-	}
+    std::cout << "[RaspKeyboard] Waiting for window focus..." << std::endl;
+    while (focusWin == None || focusWin == PointerRoot)
+    {
+        XGetInputFocus(display, &focusWin, &revert);
+        usleep(100000); // Sleep 100ms
+    }
+
+    std::cout << "[RaspKeyboard] Attached to Window ID: " << focusWin << std::endl;
+
+    XSelectInput(display, focusWin, KeyPressMask | KeyReleaseMask);
+
+    XEvent event;
+    while (true)
+    {
+        XNextEvent(display, &event);
+
+        if (event.type == KeyPress || event.type == KeyRelease)
+        {
+            KeySym keysym;
+            char buf[8] = { 0 };
+
+            XLookupString(&event.xkey, buf, sizeof(buf), &keysym, nullptr);
+
+            auto it = g_KeySymMap.find(keysym);
+            if (it != g_KeySymMap.end())
+            {
+                int engineKeyIndex = it->second;
+
+                if (event.type == KeyPress)
+                {
+                    g_PhysicalKeyState[engineKeyIndex] = true;
+                }
+                else if (event.type == KeyRelease)
+                {
+                    g_PhysicalKeyState[engineKeyIndex] = false;
+                }
+            }
+        }
+    }
+
+    XCloseDisplay(display);
 }

@@ -8,6 +8,10 @@
 
 struct BlockData
 {
+	using funInteraction = std::function<Interaction::Result(Interaction)>;
+
+	// =========
+
 	Block::ID m_id;
 	bool m_isSolid : 1;
 	bool m_isTransparent : 1;
@@ -17,6 +21,7 @@ struct BlockData
 	Collider m_collider;
 
 	std::function<void(const BlockData& data, const GeomContext& ctx)> generateGeometry;
+	std::optional<funInteraction> m_funInteraction = std::nullopt;
 	
 	BlockData() : m_id(Block::ID::Air), m_isSolid(true), m_isTransparent(false), m_canFall(false), m_emission(0)
 	{
@@ -62,15 +67,20 @@ struct BlockData
 		return IsWater(m_id);
 	}
 	static bool IsWater(Block::ID id);
+	inline bool IsInteractable() const
+	{
+		return m_funInteraction != std::nullopt;
+	}
+	static bool IsInteractable(Block::ID id);
 
 	BlockData* AffectedByGravity()
 	{
 		m_canFall = true;
 		return this;
 	}
-	BlockData* LightSource(char power)
+	BlockData* LightSource(unsigned char power)
 	{
-		m_emission = power;
+		m_emission = power & 0xF;
 		return this;
 	}
 	BlockData* Transparent()
@@ -103,4 +113,6 @@ struct BlockData
 		m_collider = collider;
 		return this;
 	}
+
+	BlockData* Interactable(funInteraction interaction);
 };

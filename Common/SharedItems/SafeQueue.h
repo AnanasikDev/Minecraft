@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <deque>
 #include <mutex>
 #include <optional>
 
@@ -8,13 +9,19 @@ template<typename T>
 class SafeQueue
 {
 private:
-    std::queue<T> queue;
+    std::deque<T> queue;
     std::mutex mtx;
 public:
-    void push(T value)
+    void pushBack(T value)
     {
         std::lock_guard<std::mutex> lock(mtx);
-        queue.push(value);
+        queue.push_back(value);
+    }
+
+    void pushFront(T value)
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        queue.push_front(value);
     }
 
     bool tryPop(T& out_value)
@@ -22,7 +29,7 @@ public:
         std::lock_guard<std::mutex> lock(mtx);
         if (queue.empty()) return false;
         out_value = queue.front();
-        queue.pop();
+        queue.pop_front();
         return true;
     }
 

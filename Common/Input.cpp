@@ -3,26 +3,26 @@
 #include "IInput.h"
 
 Input::Input(IKeyboard* const keyboard, IMouse* const mouse) :
-	mouse(mouse),
-	keyboard(keyboard)
+	m_mouse(mouse),
+	m_keyboard(keyboard)
 {
 }
 
 Input::~Input()
 {
-	delete(mouse);
-	delete(keyboard);
+	delete(m_mouse);
+	delete(m_keyboard);
 }
 
 
 IKeyboard& Input::GetKeyboard()
 {
-	return *keyboard;
+	return *m_keyboard;
 }
 
 IMouse& Input::GetMouse()
 {
-	return *mouse;
+	return *m_mouse;
 }
 
 glm::vec2 IMouse::GetPositionDelta() const

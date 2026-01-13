@@ -6,11 +6,15 @@
 #include "Transform.h"
 #include "World.h"
 #include "BlockCompositeMesh.h"
+#include "Hotbar.h"
+#include "Healthbar.h"
+#include "ImGui-master/imgui.h"
 
 Player::Player(Game* game) : Gameobject(game)
 {
 	m_camera = std::make_unique<Camera>(m_game, Frustum(45.0f, glm::vec2(Game::WINDOW_WIDTH, Game::WINDOW_HEIGHT), 0.1f, 1000.0f), Transform(), 0.25f);
 	m_camera->m_transform.SetParent(&m_transform);
+	m_mode = m_game->GetGamerules().m_physicsMode;
 
 	SetSpawnPosition();
 
@@ -25,7 +29,11 @@ Player::Player(Game* game) : Gameobject(game)
 	m_compositeMesh->m_meshPtr = &m_rightHandMesh;
 	SelectBlock(Block::ID::Grass);
 
-	m_collider.AddBox(glm::vec3(-m_size.x / 2.0f, -m_size.y, -m_size.x / 2.0f), glm::vec3(m_size.x / 2.0f, 0.0f, m_size.x / 2.0f));
+	m_collider.AddBox(AABB3D());
+	SetHeight(m_normalHeight);
+
+	m_health.Init(20, 20, 0.55f);
+	m_game->GetUI().m_healthbar->Set(m_health.GetIntValue());
 }
 
 Player::~Player() {}
@@ -39,12 +47,35 @@ void Player::SetSpawnPosition()
 
 void Player::UpdateInput()
 {
-	m_isSprinting = m_game->GetInput().GetKeyboard().IsKeyDown(Key::SHIFT_LEFT);
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.WantCaptureKeyboard) return;
 
-	float currentMovementSpeed{ m_baseMovementSpeed };
-	if (m_isSprinting)
+	const bool wasSprinting{ m_isSprinting };
+	m_isSprinting = m_game->GetInput().GetKeyboard().IsKeyDown(Key::CTRL_LEFT);
+	if (!wasSprinting && m_isSprinting)
 	{
-		currentMovementSpeed *= SPRINT_MOVEMENT_SPEED_MULTIPLIER;
+		m_camera->GetFrustum().m_fov *= SPRINT_POV_MULTIPLIER;
+	}
+	else if (wasSprinting && !m_isSprinting)
+	{
+		m_camera->GetFrustum().m_fov /= SPRINT_POV_MULTIPLIER;
+	}
+	const bool wasCrouching{ m_isCrouching };
+	if (m_mode == Gamerules::PhysicsMode::Flight)
+	{
+		m_isCrouching = true;
+	}
+	else
+	{
+		m_isCrouching = m_game->GetInput().GetKeyboard().IsKeyDown(Key::SHIFT_LEFT);
+		if (wasCrouching && !m_isCrouching)
+		{
+			SetHeight(m_normalHeight);
+		}
+		else if (!wasCrouching && m_isCrouching)
+		{
+			SetHeight(m_crouchHeight);
+		}
 	}
 
 	glm::vec3 moveDir(0, 0, 0);
@@ -53,21 +84,36 @@ void Player::UpdateInput()
 	if (m_game->GetInput().GetKeyboard().IsKeyDown(Key::D)) moveDir -= m_transform.GetLocalRight();
 	if (m_game->GetInput().GetKeyboard().IsKeyDown(Key::A)) moveDir += m_transform.GetLocalRight();
 
+	if (m_mode == Gamerules::PhysicsMode::Flight)
+	{
+		if (m_game->GetInput().GetKeyboard().IsKeyDown(Key::SPACE)) moveDir += m_transform.GetLocalUp();
+		if (m_game->GetInput().GetKeyboard().IsKeyDown(Key::SHIFT_LEFT)) moveDir -= m_transform.GetLocalUp();
+	}
+
 	// Flatten movement
-	moveDir.y = 0;
+	if (m_mode == Gamerules::PhysicsMode::Normal)
+	{
+		moveDir.y = 0;
+	}
+
 	if (glm::length(moveDir) > 0)
 	{
 		moveDir = glm::normalize(moveDir);
 	}
 
-	m_input = moveDir * currentMovementSpeed;
+	m_input = moveDir * GetCurrentMovementSpeed();
 
-	// Jump
-	if (m_isGrounded && m_game->GetInput().GetKeyboard().IsKeyDown(Key::SPACE))
+	if (m_mode == Gamerules::PhysicsMode::Normal)
 	{
-		m_velocity.y = m_jumpPower;
-		m_isGrounded = false;
+		// Jump
+		if (m_isGrounded && m_game->GetInput().GetKeyboard().IsKeyDown(Key::SPACE))
+		{
+			m_velocity.y = m_jumpPower;
+			m_isGrounded = false;
+		}
 	}
+
+	m_mouseDelta = m_game->GetInput().GetMouse().GetPositionDelta() * m_mouseSensitivity;
 }
 
 void Player::UpdateActions()
@@ -85,48 +131,99 @@ void Player::UpdateActions()
 		RaycastResult hit = m_game->m_world->Raycast(Ray(m_transform.GetWorldPosition(), m_transform.GetWorldPosition() + m_camera->m_transform.GetWorldForward() * m_reachDistance));
 		if (hit.m_block != nullptr)
 		{
-			m_game->m_world->SetAndUpdateBlockAtWorld(hit.m_worldBlockPos, Block::ID::Air);
+			if (hit.m_block->TryInteract(Interaction{this, ChunkProvider::AsWorld(m_game->m_world.get()), hit}) == Interaction::Result::Failed_Continue)
+			{
+				m_game->m_world->SetAndUpdateBlockAtWorld(hit.m_worldBlockPos, Block::ID::Air);
+			}
 		}
 	}
+
+	Hotbar* hotbar = m_game->GetUI().m_hotbar.get();
+
 	if (m_game->GetInput().GetMouse().IsButtonPressed(MouseButtons::MIDDLE))
 	{
 		RaycastResult hit = m_game->m_world->Raycast(Ray(m_transform.GetWorldPosition(), m_transform.GetWorldPosition() + m_camera->m_transform.GetWorldForward() * m_reachDistance));
 		if (hit.m_block != nullptr)
 		{
-			SelectBlock(hit.m_block->GetID());
+			hotbar->SetCurrent(Item::BlockToItem(hit.m_block->GetID()).value());
+			hotbar->Reselect(this);
 		}
 	}
-	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_1)) SelectBlock(Block::ID::Dirt);
-	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_2)) SelectBlock(Block::ID::Grass);
-	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_3)) SelectBlock(Block::ID::Lamp);
-	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_4)) SelectBlock(Block::ID::Stone);
-	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_5)) SelectBlock(Block::ID::OakLeaves);
-	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_6)) SelectBlock(Block::ID::OakLog);
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_1)) hotbar->Select(0, this);
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_2)) hotbar->Select(1, this);
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_3)) hotbar->Select(2, this);
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_4)) hotbar->Select(3, this);
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_5)) hotbar->Select(4, this);
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::NUM_6)) hotbar->Select(5, this);
 }
 
 void Player::Update()
 {
-	m_rightHand.m_transform.Rotate(1, glm::vec3(0.5f, 0.5f, 0.0f));
+	m_health.Update(m_game->GetDeltaTime());
+	m_game->GetUI().m_healthbar->Set(m_health.GetIntValue());
 
+	m_rightHand.m_transform.Rotate(1, glm::vec3(0.5f, 0.5f, 0.0f));
 	UpdateInput();
 
-	const glm::vec2 mouseDelta{ m_game->GetInput().GetMouse().GetPositionDelta() * m_mouseSensitivity };
-	m_transform.Rotate(-mouseDelta.x, glm::vec3(0, 1, 0));
-	m_camera->m_transform.Rotate(-mouseDelta.y, glm::vec3(1, 0, 0));
+	const float sense{ m_game->GetGamerules().m_mouseSensitivity };
+	m_transform.Rotate(-m_mouseDelta.x * sense, glm::vec3(0, 1, 0));
+	float camRotDelta{ -m_mouseDelta.y * sense };
+	float camRot{ m_camera->m_transform.GetLocalEulerAngles().x + camRotDelta };
+	constexpr float MAX_ANGLE{ 90 - 1 };
+	constexpr float MIN_ANGLE{ -90 + 1 };
+	if (camRot > MAX_ANGLE || camRot < MIN_ANGLE)
+	{
+		camRot = glm::clamp<float>(camRot, MIN_ANGLE, MAX_ANGLE);
+		m_camera->m_transform.SetLocalEulerAngles(glm::vec3(camRot, 0, 0));
+	}
+	else
+	{
+		m_camera->m_transform.Rotate(camRotDelta, glm::vec3(1, 0, 0));
+	}
 
 	UpdateActions();
 
-	FixedUpdate();
+	if (m_game->GetInput().GetKeyboard().IsKeyPressed(Key::SPACE))
+	{
+		if (m_toggleFlightTimer.IsRunning() && m_toggleFlightTimer.Elapsed() < m_toggleFlightDelay)
+		{
+			if (m_mode == Gamerules::PhysicsMode::Flight) m_mode = Gamerules::PhysicsMode::Normal;
+			else if (m_mode == Gamerules::PhysicsMode::Normal) m_mode = Gamerules::PhysicsMode::Flight;
+			m_game->GetGamerules().m_physicsMode = m_mode;
+
+			m_velocity = glm::vec3(0);
+		}
+		m_toggleFlightTimer.Reset();
+		m_toggleFlightTimer.Start();
+	}
+
+	switch (m_mode)
+	{
+	case Gamerules::PhysicsMode::Normal:
+	{
+		MovePhysics();
+	} break;
+	case Gamerules::PhysicsMode::Flight:
+	{
+		MoveFlight();
+	} break;
+	}
 }
 
-void Player::FixedUpdate()
+void Player::MoveFlight()
+{
+	float dt = m_game->GetDeltaTime();
+	m_transform.Translate(m_input * dt);
+}
+
+void Player::MovePhysics()
 {
 	float dt = m_game->GetDeltaTime();
 
 	m_velocity.x = m_input.x;
 	m_velocity.z = m_input.z;
 
-	m_velocity.y -= m_game->GetGamerules().m_Gravity * dt;
+	m_velocity.y -= m_game->GetGamerules().m_gravity * dt;
 
 	glm::vec3 movement = m_velocity * dt;
 
@@ -173,7 +270,16 @@ void Player::FixedUpdate()
 	m_transform.Translate(finalMovement);
 	if (std::abs(movement.y - (m_velocity.y * dt)) > 0.0001f)
 	{
-		if (m_velocity.y < 0) m_isGrounded = true;
+		if (m_velocity.y < 0)
+		{
+			bool fall = false;
+			if (!m_isGrounded)
+			{
+				fall = true;
+			}
+			m_isGrounded = true;
+			if (fall) OnFall();
+		}
 		m_velocity.y = 0;
 	}
 	else
@@ -236,6 +342,52 @@ float Player::ClipAxis(const AABB3D& player, const AABB3D& block, float delta, i
 		}
 	}
 	return delta;
+}
+
+float Player::GetCurrentMovementSpeed() const
+{
+	if (m_mode == Gamerules::PhysicsMode::Flight)
+	{
+		return m_baseMovementSpeed * FLIGHT_MOVEMENT_SPEED_MULTIPLIER;
+	}
+
+	float currentMovementSpeed{ m_baseMovementSpeed };
+	if (m_isCrouching)
+	{
+		currentMovementSpeed *= CROUCH_MOVEMENT_SPEED_MULTIPLIER;
+	}
+	else if (m_isSprinting)
+	{
+		currentMovementSpeed *= SPRINT_MOVEMENT_SPEED_MULTIPLIER;
+	}
+	return currentMovementSpeed;
+}
+
+float Player::GetHeight() const
+{
+	return m_isCrouching ? m_crouchHeight : m_normalHeight;
+}
+
+void Player::SetHeight(float height)
+{
+	const float prevHeight = m_collider.m_boxes[0].GetSize().y;
+
+	m_collider.m_boxes[0] = AABB3D
+	(
+		glm::vec3(-m_xySize / 2.0f, -height, -m_xySize / 2.0f),
+		glm::vec3(m_xySize / 2.0f, 0.0f, m_xySize / 2.0f)
+	);
+	m_transform.Translate(glm::vec3(0, height - prevHeight, 0));
+	m_camera->m_transform.SetLocalPosition(glm::vec3(0, -m_headEyeLevel, 0));
+}
+
+void Player::OnFall()
+{
+	float t{ std::abs(m_velocity.y) };
+	float power{ std::powf(t, 3.0f) / 8000.0f};
+
+	m_health.Change(-power);
+	m_game->GetUI().m_healthbar->Set(m_health.GetIntValue());
 }
 
 void Player::Render()

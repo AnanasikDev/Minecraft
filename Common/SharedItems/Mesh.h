@@ -6,7 +6,6 @@
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
 #include "Transform.h"
-#include "IRenderable.h"
 #include "Camera.h"
 #include "RenderRequest.h"
 #include "Face.h"
@@ -81,6 +80,11 @@ struct MeshBase
 		{
 			fn(m_vertices[i]);
 		}
+	}
+
+	inline bool IsEmpty() const
+	{
+		return m_vertices.empty();
 	}
 };
 

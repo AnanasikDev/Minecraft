@@ -31,6 +31,15 @@
     <Filter Include="Game\Structures">
       <UniqueIdentifier>{7d174ef7-41ec-4901-87bc-ad30292042b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Saving">
+      <UniqueIdentifier>{9fe5fe79-8a1b-42b6-9943-1c8a3699788b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\UI">
+      <UniqueIdentifier>{1d9d39cd-30c5-4c9d-89f3-4fec70a6fefe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\UI\Console">
+      <UniqueIdentifier>{a095829d-5002-4619-be26-638b5aedd6a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IInput.h">
@@ -68,9 +77,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)World.h">
       <Filter>Game\World</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)IPoolable.h">
-      <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\PerlinNoise.hpp">
       <Filter>Engine</Filter>
@@ -111,13 +117,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Camera.h">
       <Filter>Graphics\high</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Gizmos.h">
-      <Filter>Graphics\high</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IGraphics.h">
-      <Filter>Graphics\high</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)IRenderable.h">
       <Filter>Graphics\high</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Mesh.h">
@@ -225,6 +225,39 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)AssetManager.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Saver.h">
+      <Filter>Game\Saving</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)UI.h">
+      <Filter>Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)UIElement.h">
+      <Filter>Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hotbar.h">
+      <Filter>Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Item.h">
+      <Filter>Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Health.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Healthbar.h">
+      <Filter>Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Interaction.h">
+      <Filter>Game\World</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ConsoleBackend.h">
+      <Filter>Game\UI\Console</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Console.h">
+      <Filter>Game\UI\Console</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\json.hpp">
+      <Filter>Externals</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\Input.cpp">
@@ -275,13 +308,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Shader.cpp">
       <Filter>Graphics\low</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Program.cpp">
-      <Filter>Graphics\low</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Camera.cpp">
-      <Filter>Graphics\high</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Gizmos.cpp">
       <Filter>Graphics\high</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Mesh.cpp">
@@ -344,6 +371,33 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)AssetManager.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Saver.cpp">
+      <Filter>Game\Saving</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)UI.cpp">
+      <Filter>Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)UIElement.cpp">
+      <Filter>Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Hotbar.cpp">
+      <Filter>Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Item.cpp">
+      <Filter>Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Health.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Healthbar.cpp">
+      <Filter>Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Console.cpp">
+      <Filter>Game\UI\Console</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Program.cpp">
+      <Filter>Graphics\low</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\Assets\Shaders\default.frag">
@@ -382,6 +436,18 @@
       <Filter>Assets</Filter>
     </Image>
     <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\sunmoon.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\hotbar.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\hotbar_selector.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\items.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="$(MSBuildThisFileDirectory)..\Assets\Textures\hearts.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
