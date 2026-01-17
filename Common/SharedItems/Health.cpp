@@ -9,7 +9,12 @@ void Health::Init(float max, float value, float autoregen)
 
 void Health::Change(float delta)
 {
-	m_value += delta;
+	Set(m_value + delta);
+}
+
+void Health::Set(float value)
+{
+	m_value = value;
 	if (m_value > m_max) m_value = m_max;
 	if (m_value < 0) m_value = 0;
 }
@@ -32,4 +37,9 @@ int Health::GetIntValue() const
 float& Health::GetValueRef()
 {
 	return m_value;
+}
+
+float Health::GetMax() const
+{
+	return m_max;
 }

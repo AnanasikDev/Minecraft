@@ -37,9 +37,11 @@ struct ModelVertex : public BaseVertex<Txyz>
 {
 	Tuv u, v;
 	TextureAtlas::TextureID texid;
-	Tlight m_light;
+	Tlight light;
+	float shade;
 
-	ModelVertex(Txyz x, Txyz y, Txyz z, Tuv u, Tuv v, TextureAtlas::TextureID texid, Tlight m_light) : BaseVertex<Txyz>(x, y, z), u(u), v(v), texid(texid), m_light(m_light)
+	ModelVertex(Txyz x, Txyz y, Txyz z, Tuv u, Tuv v, TextureAtlas::TextureID texid, Tlight light, float shade)
+		: BaseVertex<Txyz>(x, y, z), u(u), v(v), texid(texid), light(light), shade(shade)
 	{
 	}
 
@@ -54,6 +56,7 @@ struct ModelVertex : public BaseVertex<Txyz>
 		layout->PushAttribute<Tuv>(2, GetStride());  // uv
 		layout->PushAttribute<int>(1, GetStride());  // texid
 		layout->PushAttribute<int>(1, GetStride());  // light
+		layout->PushAttribute<float>(1, GetStride());  // shade
 	}
 };
 

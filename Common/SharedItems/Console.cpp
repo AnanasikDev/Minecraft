@@ -79,12 +79,28 @@ void Console::Init(Game* game)
             }
         }
     ));
+
+    m_backend.RegisterCommand("set_health", "set_health <value 0-20>", std::function<void(float)>(
+        [&](float value)
+        {
+            m_game->m_player->GetHealth().Set(value);
+        }
+    ));
+
+    m_backend.RegisterCommand("set_tnt_radius", "set_tnt_radius <value>", std::function<void(float)>(
+        [&](float value)
+        {
+            m_game->GetGamerules().m_TNTExplosionRadius = value;
+        }
+    ));
 }
 
 void Console::Render()
 {
     if (!m_isOpen) return;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin("Console", &m_isOpen))
     { 
         ImGui::End();

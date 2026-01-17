@@ -42,6 +42,7 @@ public:
 	void SelectBlock(Block::ID id);
 
 	float GetHeight() const;
+	Health& GetHealth();
 
 private:
 	Collider m_collider;

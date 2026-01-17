@@ -212,7 +212,6 @@ void Game::Quit()
 
 void Game::ProcessInput()
 {
-	Input& input = GetInput();
 	IMouse& mouse = GetInput().GetMouse();
 
 	mouse.Update();

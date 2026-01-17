@@ -68,8 +68,8 @@ private:
 
 	double CurrentSessionTime() const
 	{
-		std::chrono::steady_clock::time_point now{ std::chrono::high_resolution_clock::now() };
-		std::chrono::duration<double> diff{ now - m_startTime };
+		auto now = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> diff = now - m_startTime;
 		return diff.count();
 	}
 };
@@ -163,8 +163,8 @@ public:
 
 	static float SinceStartup()
 	{
-		std::chrono::system_clock::time_point now{ std::chrono::system_clock::now() };
-		std::chrono::duration<float> elapsed{ now - m_startTime };
+		auto now = std::chrono::system_clock::now();
+		std::chrono::duration<float> elapsed = now - m_startTime;
 		return elapsed.count();
 	}
 

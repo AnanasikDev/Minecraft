@@ -5,6 +5,7 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 layout (location = 2) in int aTexID;
 layout (location = 3) in int aLight;
+layout (location = 4) in float aShade;
 
 uniform mat4 u_ModelMat;
 uniform mat4 u_VPMat;
@@ -12,6 +13,7 @@ uniform mat4 u_VPMat;
 out vec2 TexCoord;
 out flat int TexID;
 out flat int LightLevel;
+out flat float Shade;
 
 void main()
 {
@@ -19,5 +21,5 @@ void main()
     TexCoord = aTexCoord;
     TexID = aTexID;
     LightLevel = aLight;
-
+    Shade = aShade;
 }

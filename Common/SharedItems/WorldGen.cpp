@@ -166,7 +166,7 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 		return Block::ID::Water;
 	}
 
-	if (worldPos.y >= data.GetHeight() || data.IsCave())
+	if (worldPos.y > data.GetHeight() || data.IsCave())
 	{
 		return Block::ID::Air;
 	}
@@ -176,7 +176,7 @@ Block::ID WorldGen::GetBlockIDAt(glm::ivec3 worldPos, BlockGenData& outdata)
 		return Block::ID::Stone;
 	}
 
-	if (worldPos.y < data.GetHeight())
+	if (worldPos.y <= data.GetHeight())
 	{
 		switch (data.biom)
 		{

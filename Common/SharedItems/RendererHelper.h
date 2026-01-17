@@ -71,64 +71,72 @@ public:
 		{
 		case GridVec::Back:
 		{
-			FVertex v00(fpos.x,		fpos.y,		fpos.z,		1, 1, texid, light);
-			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z,		0, 1, texid, light);
-			FVertex v11(fpos.x + 1,	fpos.y + 1,	fpos.z,		0, 0, texid, light);
-			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z,		1, 0, texid, light);
+			const float shade{ 0.7f };
+			FVertex v00(fpos.x,		fpos.y,		fpos.z,		1, 1, texid, light, shade);
+			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z,		0, 1, texid, light, shade);
+			FVertex v11(fpos.x + 1,	fpos.y + 1,	fpos.z,		0, 0, texid, light, shade);
+			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z,		1, 0, texid, light, shade);
 			return GenerateFace(v00, v10, v11, v01, index);
 		}
 		case GridVec::Front:
 		{
-			FVertex v00(fpos.x,		fpos.y,		fpos.z + 1,	1, 1, texid, light);
-			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z + 1,	0, 1, texid, light);
-			FVertex v11(fpos.x + 1,	fpos.y + 1,	fpos.z + 1,	0, 0, texid, light);
-			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z + 1,	1, 0, texid, light);
+			const float shade{ 0.7f };
+
+			FVertex v00(fpos.x,		fpos.y,		fpos.z + 1,	1, 1, texid, light, shade);
+			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z + 1,	0, 1, texid, light, shade);
+			FVertex v11(fpos.x + 1,	fpos.y + 1,	fpos.z + 1,	0, 0, texid, light, shade);
+			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z + 1,	1, 0, texid, light, shade);
 			return GenerateFace(v01, v11, v10, v00, index);
 		}
 		case GridVec::Right:
 		{
-			FVertex v00(fpos.x + 1,	fpos.y + 1,	fpos.z,		1, 0, texid, light);
-			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z,		1, 1, texid, light);
-			FVertex v11(fpos.x + 1,	fpos.y,		fpos.z + 1,	0, 1, texid, light);
-			FVertex v01(fpos.x + 1,	fpos.y + 1,	fpos.z + 1,	0, 0, texid, light);
+			const float shade{ 0.85f };
+			FVertex v00(fpos.x + 1,	fpos.y + 1,	fpos.z,		1, 0, texid, light, shade);
+			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z,		1, 1, texid, light, shade);
+			FVertex v11(fpos.x + 1,	fpos.y,		fpos.z + 1,	0, 1, texid, light, shade);
+			FVertex v01(fpos.x + 1,	fpos.y + 1,	fpos.z + 1,	0, 0, texid, light, shade);
 			return GenerateFace(v00, v10, v11, v01, index);
 		}
 		case GridVec::Left:
 		{
-			FVertex v00(fpos.x,		fpos.y + 1,	fpos.z,		1, 0, texid, light);
-			FVertex v10(fpos.x,		fpos.y,		fpos.z,		1, 1, texid, light);
-			FVertex v11(fpos.x,		fpos.y,		fpos.z + 1,	0, 1, texid, light);
-			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z + 1,	0, 0, texid, light);
+			const float shade{ 0.85f };
+			FVertex v00(fpos.x,		fpos.y + 1,	fpos.z,		1, 0, texid, light, shade);
+			FVertex v10(fpos.x,		fpos.y,		fpos.z,		1, 1, texid, light, shade);
+			FVertex v11(fpos.x,		fpos.y,		fpos.z + 1,	0, 1, texid, light, shade);
+			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z + 1,	0, 0, texid, light, shade);
 			return GenerateFace(v01, v11, v10, v00, index);
 		}
 		case GridVec::Top:
 		{
-			FVertex v00(fpos.x,		fpos.y + 1,	fpos.z,		0, 0, texid, light);
-			FVertex v10(fpos.x + 1,	fpos.y + 1,	fpos.z,		1, 0, texid, light);
-			FVertex v11(fpos.x + 1,	fpos.y + 1,	fpos.z + 1,	1, 1, texid, light);
-			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z + 1,	0, 1, texid, light);
+			const float shade{ 1.0f };
+			FVertex v00(fpos.x,		fpos.y + 1,	fpos.z,		0, 0, texid, light, shade);
+			FVertex v10(fpos.x + 1,	fpos.y + 1,	fpos.z,		1, 0, texid, light, shade);
+			FVertex v11(fpos.x + 1,	fpos.y + 1,	fpos.z + 1,	1, 1, texid, light, shade);
+			FVertex v01(fpos.x,		fpos.y + 1,	fpos.z + 1,	0, 1, texid, light, shade);
 			return GenerateFace(v00, v10, v11, v01, index);
 		}
 		case GridVec::Bottom:
 		{
-			FVertex v00(fpos.x,		fpos.y,		fpos.z,		0, 0, texid, light);
-			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z,		1, 0, texid, light);
-			FVertex v11(fpos.x + 1,	fpos.y,		fpos.z + 1,	1, 1, texid, light);
-			FVertex v01(fpos.x,		fpos.y,		fpos.z + 1,	0, 1, texid, light);
+			const float shade{ 0.5f };
+			FVertex v00(fpos.x,		fpos.y,		fpos.z,		0, 0, texid, light, shade);
+			FVertex v10(fpos.x + 1,	fpos.y,		fpos.z,		1, 0, texid, light, shade);
+			FVertex v11(fpos.x + 1,	fpos.y,		fpos.z + 1,	1, 1, texid, light, shade);
+			FVertex v01(fpos.x,		fpos.y,		fpos.z + 1,	0, 1, texid, light, shade);
 			return GenerateFace(v01, v11, v10, v00, index);
 		}
 		case GridVec::Invalid:
-			FVertex v00(fpos.x, fpos.y, fpos.z, 0, 0, texid, light);
-			FVertex v10(fpos.x, fpos.y, fpos.z, 1, 0, texid, light);
-			FVertex v11(fpos.x, fpos.y, fpos.z, 1, 1, texid, light);
-			FVertex v01(fpos.x, fpos.y, fpos.z, 0, 1, texid, light);
+			const float shade{ 0.7f };
+			FVertex v00(fpos.x, fpos.y, fpos.z, 0, 0, texid, light, shade);
+			FVertex v10(fpos.x, fpos.y, fpos.z, 1, 0, texid, light, shade);
+			FVertex v11(fpos.x, fpos.y, fpos.z, 1, 1, texid, light, shade);
+			FVertex v01(fpos.x, fpos.y, fpos.z, 0, 1, texid, light, shade);
 			return GenerateFace(v01, v11, v10, v00, index);
 		}
-
-		FVertex v00(fpos.x,		fpos.y,		fpos.z,		0, 0, texid, light);
-		FVertex v10(fpos.x,		fpos.y,		fpos.z,		1, 0, texid, light);
-		FVertex v11(fpos.x,		fpos.y,		fpos.z, 	1, 1, texid, light);
-		FVertex v01(fpos.x,		fpos.y,		fpos.z, 	0, 1, texid, light);
+		const float shade{ 0.7f };
+		FVertex v00(fpos.x,		fpos.y,		fpos.z,		0, 0, texid, light, shade);
+		FVertex v10(fpos.x,		fpos.y,		fpos.z,		1, 0, texid, light, shade);
+		FVertex v11(fpos.x,		fpos.y,		fpos.z, 	1, 1, texid, light, shade);
+		FVertex v01(fpos.x,		fpos.y,		fpos.z, 	0, 1, texid, light, shade);
 		return GenerateFace(v01, v11, v10, v00, index);
 	}
 };

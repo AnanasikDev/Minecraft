@@ -14,6 +14,7 @@ out vec4 FragColor;
 in vec2 TexCoord;
 in flat int TexID;
 in flat int LightLevel;
+in flat float Shade;
 
 void main()
 {
@@ -32,7 +33,7 @@ void main()
 	float light = float(in_blockLight + u_minLightLevel) / float(u_maxLightLevel);
 	float skylight = float(in_skyExposure + u_minLightLevel) / float(u_maxLightLevel) * u_SunIntensity;
 	
-	vec4 finalColor = albedo * max(light, skylight);
+	vec4 finalColor = albedo * max(light, skylight) * Shade;
 	finalColor.a = alpha;
 	
 	FragColor = finalColor;

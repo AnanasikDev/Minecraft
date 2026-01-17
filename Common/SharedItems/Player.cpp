@@ -368,6 +368,11 @@ float Player::GetHeight() const
 	return m_isCrouching ? m_crouchHeight : m_normalHeight;
 }
 
+Health& Player::GetHealth()
+{
+	return m_health;
+}
+
 void Player::SetHeight(float height)
 {
 	const float prevHeight = m_collider.m_boxes[0].GetSize().y;
@@ -410,7 +415,8 @@ void Player::SelectBlock(Block::ID id)
 	m_rightHandMesh.Modify([&](FVertex& v)
 		{
 			v.x -= 0.5f; v.y -= 0.5f; v.z -= 0.5f;
-			if (m_rightHandAutoLight) v.m_light = 0xFF;
+
+			if (m_rightHandAutoLight) v.light = 0xFF;
 		});
 	m_rightHand.UpdateBuffers();
 }

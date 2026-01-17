@@ -2,6 +2,7 @@
 #include "Chunk.h"
 #include "World.h"
 #include "RemeshRequest.h"
+#include "Player.h"
 
 std::vector<BlockData> BlocksDatabase::m_datas;
 Game* BlocksDatabase::m_game = nullptr;
@@ -163,27 +164,21 @@ void BlocksDatabase::Init(Game* game)
 		->SetCollider(Collider::FullBlock())
 		->Interactable([&](Interaction args)
 			{
-
-				/*Chunk* chunk = args.world.GetChunkAt(args.raycast.m_worldBlockPos);
-				chunk->NewBlock(args.raycast.m_worldBlockPos, Block::ID::Air, true);
-				
-				return Interaction::Result::Success_Stop;*/
 				std::set<Chunk*> chunksToUpdate;
 				const float radius{ m_game->GetGamerules().m_TNTExplosionRadius };
-				int r = static_cast<int>(ceil(radius));
+				const int iradius{ static_cast<int>(ceil(radius)) };
 
-				for (int x = -r; x <= r; x++) { for (int y = -r; y <= r; y++) { for (int z = -r; z <= r; z++) {
-					glm::ivec3 blockOffset(x, y, z);
+				for (int x = -iradius; x <= iradius; x++) { for (int y = -iradius; y <= iradius; y++) { for (int z = -iradius; z <= iradius; z++) {
+					const glm::ivec3 blockOffset(x, y, z);
 					if (glm::length(glm::vec3(blockOffset)) > radius) continue;
 
-					glm::ivec3 targetPos = glm::ivec3(args.raycast.m_worldBlockPos) + blockOffset;
-
-					glm::ivec3 chunkGridPos = World::WorldBlockToChunkGrid(targetPos);
-					Chunk* chunk = args.world.GetChunkAt(chunkGridPos);
+					const glm::ivec3 targetPos{ args.raycast.m_worldBlockPos + blockOffset };
+					const glm::ivec3 chunkGridPos{ World::WorldBlockToChunkGrid(targetPos) };
+					Chunk* const chunk{ args.world.GetChunkAt(chunkGridPos) };
 
 					if (!chunk) continue;
 
-					glm::ivec3 localPos = chunk->WorldToLocal(targetPos);
+					const glm::ivec3 localPos{ chunk->WorldToLocal(targetPos) };
 					if (chunk->AtSafe(localPos)->GetID() == Block::ID::Air) continue;
 
 					chunk->NewBlock(localPos, Block::ID::Air, true);
@@ -194,7 +189,7 @@ void BlocksDatabase::Init(Game* game)
 						std::vector<glm::ivec3> neighborDiffs = chunk->GetChunkNeighboursAt(localPos);
 						for (auto& diff : neighborDiffs)
 						{
-							Chunk* neighbor = args.world.GetChunkAt(chunk->m_position + diff);
+							Chunk* const neighbor = args.world.GetChunkAt(chunk->m_position + diff);
 							if (neighbor) chunksToUpdate.insert(neighbor);
 						}
 					}
@@ -204,6 +199,19 @@ void BlocksDatabase::Init(Game* game)
 				{
 					c->m_isDirty = true;
 				}
+
+				const float maxDmg{ m_game->m_player->GetHealth().GetMax() };
+
+				auto _GetDamage = [maxDmg](float r, float d)
+				{
+					constexpr float p{ 2.0f };
+					const float m{ 1.0f - std::powf(d / r, p) };
+					return maxDmg * m;
+				};
+
+				const float distance{ glm::distance(args.player->m_transform.GetLocalPosition(), args.raycast.m_worldPos) };
+				const float damage{ -_GetDamage(radius, distance) };
+				args.player->GetHealth().Change(damage);
 				return Interaction::Result::Success_Stop;
 			});
 }
